@@ -15,7 +15,8 @@
             --text: #333333;
             --light-gray: #F5F5F5;
             --gray: #E0E0E0;
-            --success: #4CAF50;
+            --success: #28a745;
+            --success-dark: #218838;
             --error: #e74c3c;
         }
         
@@ -186,6 +187,16 @@
         .system-card .btn:hover {
             background-color: var(--primary-dark);
             border-color: var(--primary-dark);
+        }
+        
+        .system-card .btn.secondary {
+            background-color: white;
+            color: var(--primary);
+            margin-top: 10px;
+        }
+        
+        .system-card .btn.secondary:hover {
+            background-color: var(--light-gray);
         }
         
         .lock-icon {
@@ -481,6 +492,28 @@
             background-color: var(--primary-dark);
         }
         
+        .register-student-btn {
+            background-color: var(--success);
+            color: white;
+            border: none;
+            border-radius: 12px;
+            padding: 14px 30px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background-color 0.3s;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-top: 10px;
+            width: 100%;
+            justify-content: center;
+        }
+        
+        .register-student-btn:hover {
+            background-color: var(--success-dark);
+        }
+        
         .video-item {
             background-color: var(--light-gray);
             border-radius: 12px;
@@ -682,81 +715,99 @@
             animation: slideIn 0.5s ease;
         }
         
-        .login-header {
-            text-align: center;
-            margin-bottom: 30px;
+        /* نافذة أكواد الطلاب */
+        .student-codes-modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.8);
+            z-index: 2000;
+            justify-content: center;
+            align-items: center;
         }
         
-        .login-header h2 {
-            font-size: 1.8rem;
+        .student-codes-container {
+            background-color: white;
+            border-radius: 15px;
+            width: 90%;
+            max-width: 1000px;
+            max-height: 80vh;
+            padding: 20px;
+            overflow-y: auto;
+        }
+        
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 2px solid var(--light-gray);
+        }
+        
+        .modal-header h2 {
             color: var(--primary);
-            margin-bottom: 10px;
         }
         
-        .close-btn {
-            position: absolute;
-            top: 20px;
-            left: 20px;
+        .close-modal-btn {
             background: none;
             border: none;
             font-size: 1.5rem;
-            color: #999;
             cursor: pointer;
-            transition: color 0.3s;
+            color: #777;
         }
         
-        .close-btn:hover {
+        .close-modal-btn:hover {
             color: var(--primary);
         }
         
-        .form-group {
-            margin-bottom: 25px;
-        }
-        
-        .form-group label {
-            display: block;
-            margin-bottom: 8px;
-            font-weight: 600;
-            color: #555;
-        }
-        
-        .form-group input {
+        /* جدول الطلاب */
+        .students-table {
             width: 100%;
-            padding: 14px 20px;
-            border: 2px solid var(--gray);
-            border-radius: 12px;
-            font-size: 1rem;
-            transition: border-color 0.3s;
+            border-collapse: collapse;
+            margin-top: 20px;
         }
         
-        .form-group input:focus {
-            outline: none;
-            border-color: var(--primary);
-        }
-        
-        .login-btn {
-            background-color: var(--primary);
-            color: white;
-            border: none;
-            border-radius: 12px;
-            padding: 16px;
-            font-size: 1.1rem;
-            font-weight: 600;
-            cursor: pointer;
-            width: 100%;
-            transition: background-color 0.3s;
-            margin-top: 10px;
-        }
-        
-        .login-btn:hover {
-            background-color: var(--primary-dark);
-        }
-        
-        .error-message {
-            color: var(--error);
+        .students-table th, 
+        .students-table td {
+            padding: 12px 15px;
             text-align: center;
-            margin-top: 15px;
-            display: none;
+            border-bottom: 1px solid #eee;
+        }
+        
+        .students-table th {
+            background-color: rgba(255, 107, 0, 0.1);
+            color: var(--primary);
+            font-weight: 700;
+        }
+        
+        .students-table tr:hover {
+            background-color: rgba(255, 107, 0, 0.05);
+        }
+        
+        /* كود الطالب المولد */
+        .code-display {
+            background-color: #f8f9fa;
+            border: 2px dashed #6c757d;
+            border-radius: 8px;
+            padding: 15px;
+            margin-top: 20px;
+            text-align: center;
+            font-size: 1.2rem;
+            font-weight: bold;
+            color: var(--primary);
+        }
+        
+        .code-display p {
+            margin-bottom: 10px;
+        }
+        
+        .code-display strong {
+            font-size: 1.4rem;
+            color: var(--success);
         }
         
         /* التجاوب مع الشاشات الصغيرة */
@@ -790,6 +841,11 @@
             .form-row {
                 flex-direction: column;
                 gap: 10px;
+            }
+            
+            .students-table {
+                display: block;
+                overflow-x: auto;
             }
         }
     </style>
@@ -883,6 +939,66 @@
             </div>
             
             <div class="dashboard-content">
+                <!-- تسجيل طالب جديد -->
+                <div class="dashboard-card">
+                    <div class="card-header">
+                        <div class="icon">
+                            <i class="fas fa-user-plus"></i>
+                        </div>
+                        <h3>تسجيل طالب جديد</h3>
+                    </div>
+                    <div class="card-content">
+                        <div class="upload-form">
+                            <div class="form-group">
+                                <label for="new-student-name">الاسم الكامل</label>
+                                <input type="text" id="new-student-name" placeholder="أدخل الاسم الكامل للطالب">
+                            </div>
+                            
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label for="new-student-phone">رقم الهاتف</label>
+                                    <input type="tel" id="new-student-phone" placeholder="أدخل رقم الهاتف">
+                                </div>
+                                <div class="form-group">
+                                    <label for="new-student-email">البريد الإلكتروني (اختياري)</label>
+                                    <input type="email" id="new-student-email" placeholder="أدخل البريد الإلكتروني">
+                                </div>
+                            </div>
+                            
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label for="new-student-grade">الصف الدراسي</label>
+                                    <select id="new-student-grade" class="form-control">
+                                        <option value="الأول ثانوي">الأول ثانوي</option>
+                                        <option value="الثاني ثانوي">الثاني ثانوي</option>
+                                        <option value="الثالث ثانوي">الثالث ثانوي</option>
+                                    </select>
+                                </div>
+                                <div class="form-group">
+                                    <label for="new-student-subject">المادة الرئيسية</label>
+                                    <select id="new-student-subject" class="form-control">
+                                        <option value="رياضيات">الرياضيات</option>
+                                        <option value="فيزياء">الفيزياء</option>
+                                        <option value="كيمياء">الكيمياء</option>
+                                        <option value="لغة عربية">اللغة العربية</option>
+                                        <option value="لغة إنجليزية">اللغة الإنجليزية</option>
+                                    </select>
+                                </div>
+                            </div>
+                            
+                            <button class="register-student-btn" id="register-new-student">
+                                <i class="fas fa-user-plus"></i> تسجيل الطالب
+                            </button>
+                            
+                            <div class="code-display" id="generated-code-display" style="display: none;">
+                                <p>تم تسجيل الطالب بنجاح!</p>
+                                <p>الكود الخاص بالطالب: <strong id="student-code-generated"></strong></p>
+                                <p>يمكن للطالب استخدام هذا الكود للدخول إلى النظام</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
                 <!-- رفع المحتوى التعليمي -->
                 <div class="dashboard-card">
                     <div class="card-header">
@@ -940,27 +1056,26 @@
                         <h3>الدروس المرفوعة</h3>
                     </div>
                     <div class="card-content" id="uploaded-videos">
-                        <!-- سيتم ملؤها بالدروس المرفوعة -->
                         <div class="empty-message">
                             <p>لم تقم برفع أي دروس بعد. ابدأ برفع دروسك الأولى!</p>
                         </div>
                     </div>
                 </div>
                 
-                <!-- إدارة أكواد الطلاب -->
+                <!-- إدارة الطلاب -->
                 <div class="dashboard-card">
                     <div class="card-header">
                         <div class="icon">
-                            <i class="fas fa-key"></i>
+                            <i class="fas fa-users"></i>
                         </div>
-                        <h3>إدارة أكواد الطلاب</h3>
+                        <h3>إدارة الطلاب</h3>
                     </div>
                     <div class="card-content">
                         <div class="student-codes-info">
-                            <p>عدد أكواد الطلاب المسجلين: <strong>200</strong></p>
+                            <p>عدد الطلاب المسجلين: <strong><span id="total-students">0</span></strong></p>
                             <p>السنة الدراسية: <strong>2025</strong></p>
-                            <button id="view-codes-btn" class="save-btn">
-                                <i class="fas fa-eye"></i> عرض الأكواد
+                            <button id="view-students-btn" class="save-btn">
+                                <i class="fas fa-eye"></i> عرض الطلاب المسجلين
                             </button>
                         </div>
                     </div>
@@ -977,7 +1092,7 @@
                     <div class="card-content">
                         <ul>
                             <li><i class="fas fa-check-circle"></i> عدد الدروس المرفوعة: <span id="total-videos">0</span></li>
-                            <li><i class="fas fa-check-circle"></i> عدد الطلاب المسجلين: 200</li>
+                            <li><i class="fas fa-check-circle"></i> عدد الطلاب المسجلين: <span id="total-students-stat">0</span></li>
                             <li><i class="fas fa-check-circle"></i> متوسط التقييمات: 4.8/5</li>
                             <li><i class="fas fa-check-circle"></i> نسبة الحضور: 96%</li>
                             <li><i class="fas fa-check-circle"></i> المواد الأكثر مشاهدة: الرياضيات</li>
@@ -1086,61 +1201,49 @@
         </div>
     </div>
 
-    <!-- نافذة أكواد الطلاب -->
-    <div class="student-codes-modal" id="student-codes-modal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.8); z-index: 2000; justify-content: center; align-items: center;">
-        <div style="background-color: white; border-radius: 15px; width: 90%; max-width: 800px; max-height: 80vh; padding: 20px; overflow-y: auto;">
-            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
-                <h2 style="color: var(--primary);">أكواد الطلاب المسجلين - 2025</h2>
-                <button id="close-codes-modal" style="background: none; border: none; font-size: 1.5rem; cursor: pointer; color: #777;">&times;</button>
+    <!-- نافذة إدارة الطلاب -->
+    <div class="student-codes-modal" id="student-management-modal">
+        <div class="student-codes-container">
+            <div class="modal-header">
+                <h2><i class="fas fa-users"></i> إدارة الطلاب المسجلين</h2>
+                <button class="close-modal-btn" id="close-management-modal">&times;</button>
             </div>
-            <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 15px;" id="student-codes-container">
-                <!-- سيتم ملؤها بالأكواد -->
+            
+            <div style="display: flex; justify-content: space-between; margin-bottom: 15px;">
+                <div>
+                    <p>عدد الطلاب المسجلين: <strong id="students-count">0</strong></p>
+                </div>
+                <div>
+                    <button id="print-students-btn" class="save-btn">
+                        <i class="fas fa-print"></i> طباعة القائمة
+                    </button>
+                </div>
             </div>
+            
+            <table class="students-table">
+                <thead>
+                    <tr>
+                        <th>#</th>
+                        <th>الاسم الكامل</th>
+                        <th>الكود الخاص</th>
+                        <th>الصف الدراسي</th>
+                        <th>المادة الرئيسية</th>
+                        <th>تاريخ التسجيل</th>
+                        <th>الهاتف</th>
+                    </tr>
+                </thead>
+                <tbody id="students-table-body">
+                    <!-- سيتم ملؤها بالطلاب -->
+                </tbody>
+            </table>
         </div>
     </div>
 
     <script>
-        // توليد 200 كود طالب للسنة 2025
-        const generateStudentCodes = () => {
-            const codes = [];
-            const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ0123456789';
-            
-            for (let i = 0; i < 200; i++) {
-                let code = 'STU2025-';
-                for (let j = 0; j < 5; j++) {
-                    const randomIndex = Math.floor(Math.random() * chars.length);
-                    code += chars[randomIndex];
-                }
-                codes.push(code);
-            }
-            
-            return codes;
-        };
-        
         // بيانات التطبيق
-        const studentCodes = generateStudentCodes();
-        const videosData = [
-            {
-                id: 1,
-                title: "المعادلات التربيعية",
-                description: "شرح مفصل للمعادلات التربيعية وحلولها باستخدام القانون العام.",
-                subject: "رياضيات",
-                level: "الثالث ثانوي",
-                date: "2025-01-05",
-                views: 120,
-                rating: 4.8
-            },
-            {
-                id: 2,
-                title: "قوانين نيوتن للحركة",
-                description: "شرح قوانين نيوتن الثلاثة للحركة مع أمثلة تطبيقية.",
-                subject: "فيزياء",
-                level: "الثاني ثانوي",
-                date: "2025-01-12",
-                views: 85,
-                rating: 4.5
-            }
-        ];
+        const studentCodes = [];
+        const studentsData = [];
+        const videosData = [];
         
         // عناصر DOM
         const mainScreen = document.getElementById('main-screen');
@@ -1163,10 +1266,17 @@
         const uploadedVideosContainer = document.getElementById('uploaded-videos');
         const studentVideoList = document.getElementById('student-video-list');
         const totalVideosSpan = document.getElementById('total-videos');
-        const viewCodesBtn = document.getElementById('view-codes-btn');
-        const studentCodesModal = document.getElementById('student-codes-modal');
-        const closeCodesModal = document.getElementById('close-codes-modal');
-        const studentCodesContainer = document.getElementById('student-codes-container');
+        const totalStudentsSpan = document.getElementById('total-students');
+        const totalStudentsStat = document.getElementById('total-students-stat');
+        const viewStudentsBtn = document.getElementById('view-students-btn');
+        const studentManagementModal = document.getElementById('student-management-modal');
+        const closeManagementModal = document.getElementById('close-management-modal');
+        const studentsTableBody = document.getElementById('students-table-body');
+        const studentsCount = document.getElementById('students-count');
+        const printStudentsBtn = document.getElementById('print-students-btn');
+        const registerNewStudentBtn = document.getElementById('register-new-student');
+        const generatedCodeDisplay = document.getElementById('generated-code-display');
+        const studentCodeGenerated = document.getElementById('student-code-generated');
         
         // بيانات تسجيل الدخول للتدريسين
         const teacherCredentials = {
@@ -1176,11 +1286,11 @@
         
         // تهيئة البيانات عند التحميل
         document.addEventListener('DOMContentLoaded', function() {
-            loadVideos();
+            loadData();
             renderUploadedVideos();
             renderStudentVideos();
             updateTotalVideos();
-            renderStudentCodes();
+            updateTotalStudents();
         });
         
         // فتح نافذة تسجيل الدخول للتدريسين
@@ -1251,6 +1361,53 @@
             mainScreen.style.display = 'flex';
         });
         
+        // تسجيل طالب جديد من قبل المدرس
+        registerNewStudentBtn.addEventListener('click', function() {
+            const name = document.getElementById('new-student-name').value.trim();
+            const phone = document.getElementById('new-student-phone').value.trim();
+            const email = document.getElementById('new-student-email').value.trim();
+            const grade = document.getElementById('new-student-grade').value;
+            const subject = document.getElementById('new-student-subject').value;
+            
+            if(name && phone) {
+                // توليد كود فريد للطالب
+                const code = generateStudentCode();
+                
+                // حفظ بيانات الطالب
+                const student = {
+                    id: Date.now(),
+                    name,
+                    phone,
+                    email,
+                    grade,
+                    subject,
+                    code,
+                    date: new Date().toISOString().split('T')[0]
+                };
+                
+                studentsData.push(student);
+                studentCodes.push(code);
+                saveData();
+                updateTotalStudents();
+                
+                // عرض الكود المولد
+                studentCodeGenerated.textContent = code;
+                generatedCodeDisplay.style.display = 'block';
+                
+                // مسح الحقول
+                document.getElementById('new-student-name').value = '';
+                document.getElementById('new-student-phone').value = '';
+                document.getElementById('new-student-email').value = '';
+                
+                // إخفاء رسالة الكود بعد 10 ثواني
+                setTimeout(() => {
+                    generatedCodeDisplay.style.display = 'none';
+                }, 10000);
+            } else {
+                alert('الرجاء إدخال الاسم ورقم الهاتف على الأقل');
+            }
+        });
+        
         // رفع فيديو جديد
         uploadVideoBtn.addEventListener('click', function() {
             const title = document.getElementById('video-title').value;
@@ -1271,8 +1428,8 @@
                 };
                 
                 videosData.push(newVideo);
-                saveVideos();
-                loadVideos();
+                saveData();
+                loadData();
                 renderUploadedVideos();
                 renderStudentVideos();
                 updateTotalVideos();
@@ -1291,27 +1448,78 @@
             const index = videosData.findIndex(video => video.id === id);
             if (index !== -1) {
                 videosData.splice(index, 1);
-                saveVideos();
-                loadVideos();
+                saveData();
+                loadData();
                 renderUploadedVideos();
                 renderStudentVideos();
                 updateTotalVideos();
             }
         }
         
-        // تحميل الفيديوهات
-        function loadVideos() {
+        // عرض إدارة الطلاب
+        viewStudentsBtn.addEventListener('click', function() {
+            renderStudentsTable();
+            studentManagementModal.style.display = 'flex';
+        });
+        
+        // إغلاق نافذة إدارة الطلاب
+        closeManagementModal.addEventListener('click', function() {
+            studentManagementModal.style.display = 'none';
+        });
+        
+        // طباعة قائمة الطلاب
+        printStudentsBtn.addEventListener('click', function() {
+            window.print();
+        });
+        
+        // توليد كود طالب فريد
+        function generateStudentCode() {
+            const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ0123456789';
+            let code = 'STU2025-';
+            
+            do {
+                code = 'STU2025-';
+                for (let j = 0; j < 5; j++) {
+                    const randomIndex = Math.floor(Math.random() * chars.length);
+                    code += chars[randomIndex];
+                }
+            } while (studentCodes.includes(code));
+            
+            return code;
+        }
+        
+        // تحميل البيانات
+        function loadData() {
+            // تحميل بيانات الفيديوهات
             const savedVideos = localStorage.getItem('instituteVideos');
             if (savedVideos) {
                 videosData.length = 0;
                 const parsedVideos = JSON.parse(savedVideos);
                 parsedVideos.forEach(video => videosData.push(video));
             }
+            
+            // تحميل بيانات الطلاب
+            const savedStudents = localStorage.getItem('instituteStudents');
+            if (savedStudents) {
+                studentsData.length = 0;
+                const parsedStudents = JSON.parse(savedStudents);
+                parsedStudents.forEach(student => studentsData.push(student));
+            }
+            
+            // تحميل الأكواد
+            const savedCodes = localStorage.getItem('studentCodes');
+            if (savedCodes) {
+                studentCodes.length = 0;
+                const parsedCodes = JSON.parse(savedCodes);
+                parsedCodes.forEach(code => studentCodes.push(code));
+            }
         }
         
-        // حفظ الفيديوهات
-        function saveVideos() {
+        // حفظ البيانات
+        function saveData() {
             localStorage.setItem('instituteVideos', JSON.stringify(videosData));
+            localStorage.setItem('instituteStudents', JSON.stringify(studentsData));
+            localStorage.setItem('studentCodes', JSON.stringify(studentCodes));
         }
         
         // عرض الفيديوهات المرفوعة للتدريسين
@@ -1393,10 +1601,19 @@
             });
         }
         
-        // تحديث عدد الفيديوهات
+        // تحديث عدد الفيديوهات والطلاب
         function updateTotalVideos() {
             if (totalVideosSpan) {
                 totalVideosSpan.textContent = videosData.length;
+            }
+        }
+        
+        function updateTotalStudents() {
+            if (totalStudentsSpan) {
+                totalStudentsSpan.textContent = studentsData.length;
+            }
+            if (totalStudentsStat) {
+                totalStudentsStat.textContent = studentsData.length;
             }
         }
         
@@ -1406,7 +1623,7 @@
             if (video) {
                 alert(`جاري تحميل الدرس: ${video.title}\n\n${video.description}`);
                 video.views++;
-                saveVideos();
+                saveData();
                 renderUploadedVideos();
             }
         }
@@ -1427,39 +1644,41 @@
             }
         }
         
-        // عرض أكواد الطلاب
-        function renderStudentCodes() {
-            if (!studentCodesContainer) return;
+        // عرض جدول الطلاب
+        function renderStudentsTable() {
+            if (!studentsTableBody) return;
             
-            studentCodesContainer.innerHTML = '';
+            studentsTableBody.innerHTML = '';
+            studentsCount.textContent = studentsData.length;
             
-            studentCodes.forEach(code => {
-                const codeElement = document.createElement('div');
-                codeElement.className = 'student-code-item';
-                codeElement.style.backgroundColor = '#f9f9f9';
-                codeElement.style.padding = '10px';
-                codeElement.style.borderRadius = '8px';
-                codeElement.style.textAlign = 'center';
-                codeElement.style.fontWeight = '600';
-                codeElement.style.color = '#333';
-                codeElement.style.border = '1px solid #eee';
-                codeElement.textContent = code;
-                studentCodesContainer.appendChild(codeElement);
+            if (studentsData.length === 0) {
+                studentsTableBody.innerHTML = `
+                    <tr>
+                        <td colspan="7" style="text-align: center; padding: 20px;">
+                            لا يوجد طلاب مسجلين بعد
+                        </td>
+                    </tr>
+                `;
+                return;
+            }
+            
+            studentsData.forEach((student, index) => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${index + 1}</td>
+                    <td>${student.name}</td>
+                    <td><strong>${student.code}</strong></td>
+                    <td>${student.grade}</td>
+                    <td>${student.subject}</td>
+                    <td>${student.date}</td>
+                    <td>${student.phone}</td>
+                `;
+                studentsTableBody.appendChild(row);
             });
         }
         
-        // عرض نافذة الأكواد
-        viewCodesBtn.addEventListener('click', function() {
-            studentCodesModal.style.display = 'flex';
-        });
-        
-        // إغلاق نافذة الأكواد
-        closeCodesModal.addEventListener('click', function() {
-            studentCodesModal.style.display = 'none';
-        });
-        
         // تهيئة البيانات المبدئية
-        saveVideos();
+        saveData();
     </script>
 </body>
 </html>
