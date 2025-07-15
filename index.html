@@ -140,10 +140,6 @@
             border-top: 6px solid var(--primary);
         }
         
-        .system-card.free-lessons {
-            border-top: 6px solid var(--primary);
-        }
-        
         .system-icon {
             width: 120px;
             height: 120px;
@@ -814,34 +810,6 @@
             color: var(--success);
         }
         
-        /* نظام المحاضرات المجانية */
-        .free-lessons-section {
-            display: none;
-            padding: 40px 0;
-        }
-        
-        .free-lessons-section .dashboard-title h1 {
-            color: var(--primary);
-        }
-        
-        .free-lessons-section .icon {
-            background-color: rgba(255, 107, 0, 0.1);
-            color: var(--primary);
-        }
-        
-        .free-lessons-section .card-header .icon {
-            background-color: rgba(255, 107, 0, 0.1);
-            color: var(--primary);
-        }
-        
-        .free-lessons-section .logout-btn {
-            background-color: var(--primary);
-        }
-        
-        .free-lessons-section .logout-btn:hover {
-            background-color: var(--primary-dark);
-        }
-        
         /* التجاوب مع الشاشات الصغيرة */
         @media (max-width: 768px) {
             .nav-container {
@@ -994,16 +962,6 @@
                     <h2>نظام التدريسين</h2>
                     <p>منصة متكاملة تمكن المدرسين من إدارة الدروس، متابعة الطلاب، رفع المحتوى التعليمي، وتقييم أداء الطلاب بكل سهولة وفعالية.</p>
                     <a href="#" class="btn" id="teacher-login-btn">الدخول إلى النظام</a>
-                </div>
-                
-                <!-- المحاضرات المجانية -->
-                <div class="system-card free-lessons">
-                    <div class="system-icon">
-                        <i class="fas fa-video"></i>
-                    </div>
-                    <h2>المحاضرات المجانية</h2>
-                    <p>مجموعة من الدروس المجانية في مختلف المواد الدراسية. يمكنك الوصول إليها مباشرة دون الحاجة إلى كود خاص.</p>
-                    <a href="#" class="btn" id="free-lessons-btn">عرض المحاضرات</a>
                 </div>
                 
                 <!-- نظام الطلاب -->
@@ -1160,14 +1118,6 @@
                                 <select id="content-type" class="form-control" onchange="toggleContentType()">
                                     <option value="file">رفع ملف من الجهاز</option>
                                     <option value="youtube">رابط يوتيوب</option>
-                                </select>
-                            </div>
-                            
-                            <div class="form-group">
-                                <label>نوع الدرس</label>
-                                <select id="lesson-type" class="form-control">
-                                    <option value="paid">درس خاص (يحتاج كود)</option>
-                                    <option value="free">درس مجاني</option>
                                 </select>
                             </div>
                             
@@ -1343,44 +1293,6 @@
             </div>
         </div>
     </div>
-    
-    <!-- نظام المحاضرات المجانية -->
-    <div class="free-lessons-section" id="free-lessons-section">
-        <div class="container">
-            <div class="dashboard-header">
-                <div class="dashboard-title">
-                    <h1><i class="fas fa-video"></i> المحاضرات المجانية</h1>
-                    <div class="icon">
-                        <i class="fas fa-graduation-cap"></i>
-                    </div>
-                </div>
-                <button class="logout-btn" id="free-lessons-back">
-                    <i class="fas fa-arrow-left"></i> العودة للواجهة الرئيسية
-                </button>
-            </div>
-            
-            <div class="student-welcome" style="background: linear-gradient(135deg, rgba(255,107,0,0.1) 0%, rgba(255,158,88,0.1) 100%);">
-                <h2 style="color: var(--primary);">المحاضرات المجانية</h2>
-                <p>مجموعة من الدروس التعليمية المجانية في مختلف المواد الدراسية. يمكنك مشاهدتها مباشرة دون الحاجة إلى كود خاص.</p>
-            </div>
-            
-            <div class="dashboard-content">
-                <div class="dashboard-card">
-                    <div class="card-header">
-                        <div class="icon">
-                            <i class="fas fa-play-circle"></i>
-                        </div>
-                        <h3>الدروس المجانية</h3>
-                    </div>
-                    <div class="card-content">
-                        <div class="student-video-list" id="free-video-list">
-                            <!-- سيتم ملؤها بالدروس المجانية -->
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
 
     <!-- نافذة إدارة الطلاب -->
     <div class="student-codes-modal" id="student-management-modal">
@@ -1411,7 +1323,6 @@
                         <th>المادة الرئيسية</th>
                         <th>تاريخ التسجيل</th>
                         <th>الهاتف</th>
-                        <th>IP الجهاز</th>
                     </tr>
                 </thead>
                 <tbody id="students-table-body">
@@ -1432,7 +1343,6 @@
         const studentCodes = [];
         const studentsData = [];
         const videosData = [];
-        const deviceIPs = {}; // لتخزين عناوين IP للأجهزة
         
         // عناصر DOM
         const mainScreen = document.getElementById('main-screen');
@@ -1454,7 +1364,7 @@
         const uploadVideoBtn = document.getElementById('upload-video');
         const uploadedVideosContainer = document.getElementById('uploaded-videos');
         const studentVideoList = document.getElementById('student-video-list');
-        const freeVideoList = document.getElementById('free-video-list');
+        const totalVideosSpan = document.getElementById('total-videos');
         const totalStudentsSpan = document.getElementById('total-students');
         const viewStudentsBtn = document.getElementById('view-students-btn');
         const studentManagementModal = document.getElementById('student-management-modal');
@@ -1466,9 +1376,6 @@
         const generatedCodeDisplay = document.getElementById('generated-code-display');
         const studentCodeGenerated = document.getElementById('student-code-generated');
         const copyCodeBtn = document.getElementById('copy-code-btn');
-        const freeLessonsBtn = document.getElementById('free-lessons-btn');
-        const freeLessonsSection = document.getElementById('free-lessons-section');
-        const freeLessonsBack = document.getElementById('free-lessons-back');
         const loader = document.getElementById('loader');
         
         // بيانات تسجيل الدخول للتدريسين
@@ -1480,37 +1387,10 @@
         // تعريف قاعدة البيانات IndexedDB
         let db;
         const DB_NAME = "InstituteDB";
-        const DB_VERSION = 3; // زيادة رقم الإصدار لتجنب المشاكل
+        const DB_VERSION = 2; // زيادة رقم الإصدار لتجنب المشاكل
         const STUDENTS_STORE = "students";
         const VIDEOS_STORE = "videos";
         const CODES_STORE = "codes";
-        const DEVICES_STORE = "devices";
-
-        // تحسين الأداء: تخزين مؤقت للبيانات
-        const dataCache = {
-            students: [],
-            videos: [],
-            codes: [],
-            devices: {}
-        };
-
-        // الحصول على IP الجهاز
-        async function getClientIP() {
-            try {
-                // استخدام خدمة متعددة لضمان الحصول على IP
-                const responses = await Promise.race([
-                    fetch('https://api.ipify.org?format=json'),
-                    fetch('https://api64.ipify.org?format=json'),
-                    new Promise((_, reject) => setTimeout(() => reject(new Error('Timeout')), 3000))
-                ]);
-                
-                const data = await responses.json();
-                return data.ip || "unknown";
-            } catch (error) {
-                console.error("خطأ في الحصول على IP:", error);
-                return "unknown";
-            }
-        }
 
         // عرض مؤشر التحميل
         function showLoader() {
@@ -1536,13 +1416,6 @@
                 request.onsuccess = function(event) {
                     db = event.target.result;
                     console.log("تم فتح قاعدة البيانات بنجاح");
-                    
-                    // تحسين الأداء: زيادة حجم ذاكرة التخزين المؤقت
-                    db.onversionchange = function() {
-                        db.close();
-                        console.log("تم إغلاق قاعدة البيانات للتحديث");
-                    };
-                    
                     resolve(db);
                 };
                 
@@ -1561,16 +1434,12 @@
                         db.createObjectStore(CODES_STORE, { keyPath: "code" });
                     }
                     
-                    if (!db.objectStoreNames.contains(DEVICES_STORE)) {
-                        db.createObjectStore(DEVICES_STORE, { keyPath: "code" });
-                    }
-                    
                     console.log("تم إنشاء مخازن البيانات الجديدة");
                 };
             });
         }
 
-        // حفظ البيانات في IndexedDB (مع تحسينات الأداء)
+        // حفظ البيانات في IndexedDB
         async function saveDataToDB() {
             showLoader();
             try {
@@ -1578,44 +1447,32 @@
                     throw new Error("قاعدة البيانات غير مهيأة");
                 }
 
-                // استخدام المعاملات المجمعة لتحسين الأداء
                 await new Promise((resolve, reject) => {
                     const transaction = db.transaction(
-                        [STUDENTS_STORE, VIDEOS_STORE, CODES_STORE, DEVICES_STORE], 
+                        [STUDENTS_STORE, VIDEOS_STORE, CODES_STORE], 
                         "readwrite"
                     );
 
-                    // حفظ الطلاب (بتجميع البيانات)
+                    // حفظ الطلاب
                     const studentsStore = transaction.objectStore(STUDENTS_STORE);
                     studentsStore.clear();
-                    dataCache.students = [...studentsData];
                     studentsData.forEach(student => {
                         studentsStore.add(student);
                     });
 
-                    // حفظ الفيديوهات (بتجميع البيانات)
+                    // حفظ الفيديوهات
                     const videosStore = transaction.objectStore(VIDEOS_STORE);
                     videosStore.clear();
-                    dataCache.videos = [...videosData];
                     videosData.forEach(video => {
                         videosStore.add(video);
                     });
 
-                    // حفظ الأكواد (بتجميع البيانات)
+                    // حفظ الأكواد
                     const codesStore = transaction.objectStore(CODES_STORE);
                     codesStore.clear();
-                    dataCache.codes = [...studentCodes];
                     studentCodes.forEach(code => {
                         codesStore.add({ code });
                     });
-
-                    // حفظ أجهزة الطلاب (بتجميع البيانات)
-                    const devicesStore = transaction.objectStore(DEVICES_STORE);
-                    devicesStore.clear();
-                    dataCache.devices = {...deviceIPs};
-                    for (const code in deviceIPs) {
-                        devicesStore.add({ code, ip: deviceIPs[code] });
-                    }
 
                     transaction.oncomplete = function() {
                         console.log("تم حفظ جميع البيانات في IndexedDB");
@@ -1635,7 +1492,7 @@
             }
         }
 
-        // تحميل البيانات من IndexedDB (مع تحسينات الأداء)
+        // تحميل البيانات من IndexedDB
         async function loadDataFromDB() {
             showLoader();
             try {
@@ -1643,48 +1500,31 @@
                     throw new Error("قاعدة البيانات غير مهيأة");
                 }
 
-                // استخدام التخزين المؤقت لتحسين الأداء
-                if (dataCache.students.length > 0 && dataCache.videos.length > 0) {
-                    studentsData.length = 0;
-                    studentsData.push(...dataCache.students);
-                    
-                    videosData.length = 0;
-                    videosData.push(...dataCache.videos);
-                    
-                    studentCodes.length = 0;
-                    studentCodes.push(...dataCache.codes);
-                    
-                    Object.assign(deviceIPs, dataCache.devices);
-                    
-                    hideLoader();
-                    return;
-                }
-
                 await new Promise((resolve, reject) => {
                     const transaction = db.transaction(
-                        [STUDENTS_STORE, VIDEOS_STORE, CODES_STORE, DEVICES_STORE], 
+                        [STUDENTS_STORE, VIDEOS_STORE, CODES_STORE], 
                         "readonly"
                     );
 
                     let loadedStudents = false;
                     let loadedVideos = false;
                     let loadedCodes = false;
-                    let loadedDevices = false;
 
                     function checkAllLoaded() {
-                        if (loadedStudents && loadedVideos && loadedCodes && loadedDevices) {
+                        if (loadedStudents && loadedVideos && loadedCodes) {
                             resolve();
                         }
                     }
 
-                    // تحميل الطلاب (مع التخزين المؤقت)
+                    // تحميل الطلاب
                     const studentsStore = transaction.objectStore(STUDENTS_STORE);
                     const studentsRequest = studentsStore.getAll();
                     
                     studentsRequest.onsuccess = function() {
                         studentsData.length = 0;
-                        dataCache.students = studentsRequest.result;
-                        studentsData.push(...dataCache.students);
+                        studentsRequest.result.forEach(student => {
+                            studentsData.push(student);
+                        });
                         loadedStudents = true;
                         checkAllLoaded();
                     };
@@ -1694,14 +1534,15 @@
                         reject(event.target.error);
                     };
 
-                    // تحميل الفيديوهات (مع التخزين المؤقت)
+                    // تحميل الفيديوهات
                     const videosStore = transaction.objectStore(VIDEOS_STORE);
                     const videosRequest = videosStore.getAll();
                     
                     videosRequest.onsuccess = function() {
                         videosData.length = 0;
-                        dataCache.videos = videosRequest.result;
-                        videosData.push(...dataCache.videos);
+                        videosRequest.result.forEach(video => {
+                            videosData.push(video);
+                        });
                         loadedVideos = true;
                         checkAllLoaded();
                     };
@@ -1711,40 +1552,21 @@
                         reject(event.target.error);
                     };
 
-                    // تحميل الأكواد (مع التخزين المؤقت)
+                    // تحميل الأكواد
                     const codesStore = transaction.objectStore(CODES_STORE);
                     const codesRequest = codesStore.getAll();
                     
                     codesRequest.onsuccess = function() {
                         studentCodes.length = 0;
-                        dataCache.codes = codesRequest.result.map(item => item.code);
-                        studentCodes.push(...dataCache.codes);
+                        codesRequest.result.forEach(item => {
+                            studentCodes.push(item.code);
+                        });
                         loadedCodes = true;
                         checkAllLoaded();
                     };
 
                     codesRequest.onerror = function(event) {
                         console.error("خطأ في تحميل الأكواد:", event.target.error);
-                        reject(event.target.error);
-                    };
-
-                    // تحميل أجهزة الطلاب (مع التخزين المؤقت)
-                    const devicesStore = transaction.objectStore(DEVICES_STORE);
-                    const devicesRequest = devicesStore.getAll();
-                    
-                    devicesRequest.onsuccess = function() {
-                        Object.keys(deviceIPs).forEach(key => delete deviceIPs[key]);
-                        dataCache.devices = {};
-                        devicesRequest.result.forEach(item => {
-                            deviceIPs[item.code] = item.ip;
-                            dataCache.devices[item.code] = item.ip;
-                        });
-                        loadedDevices = true;
-                        checkAllLoaded();
-                    };
-
-                    devicesRequest.onerror = function(event) {
-                        console.error("خطأ في تحميل أجهزة الطلاب:", event.target.error);
                         reject(event.target.error);
                     };
 
@@ -1773,7 +1595,7 @@
                 await loadDataFromDB();
                 renderUploadedVideos();
                 renderStudentVideos();
-                renderFreeVideos();
+                updateTotalVideos();
                 updateTotalStudents();
                 console.log("تم تهيئة التطبيق بنجاح");
             } catch (error) {
@@ -1849,8 +1671,7 @@
                     grade,
                     subject,
                     code,
-                    date: new Date().toISOString().split('T')[0],
-                    deviceIP: null
+                    date: new Date().toISOString().split('T')[0]
                 };
                 
                 studentsData.push(student);
@@ -1889,7 +1710,6 @@
             const subject = document.getElementById('video-subject').value;
             const level = document.getElementById('video-level').value;
             const contentType = document.getElementById('content-type').value;
-            const lessonType = document.getElementById('lesson-type').value;
             
             if(title && description) {
                 const newVideo = {
@@ -1901,8 +1721,7 @@
                     date: new Date().toISOString().split('T')[0],
                     views: 0,
                     rating: 0,
-                    type: contentType,
-                    isFree: lessonType === 'free'
+                    type: contentType
                 };
                 
                 if (contentType === 'file') {
@@ -1930,7 +1749,7 @@
                     await saveDataToDB();
                     renderUploadedVideos();
                     renderStudentVideos();
-                    renderFreeVideos();
+                    updateTotalVideos();
                     
                     document.getElementById('video-title').value = '';
                     document.getElementById('video-description').value = '';
@@ -1958,7 +1777,7 @@
                     await saveDataToDB();
                     renderUploadedVideos();
                     renderStudentVideos();
-                    renderFreeVideos();
+                    updateTotalVideos();
                     alert('تم حذف الدرس بنجاح');
                 } catch (error) {
                     console.error("خطأ في حذف الفيديو:", error);
@@ -2026,7 +1845,6 @@
                     <div class="video-meta">
                         <span>${video.subject} - ${video.level}</span>
                         <span>${video.views} مشاهدة</span>
-                        <span>${video.isFree ? 'مجاني' : 'خاص'}</span>
                     </div>
                     <div class="video-actions">
                         <button class="action-btn edit-btn" onclick="editVideo(${video.id})">
@@ -2047,9 +1865,7 @@
             
             studentVideoList.innerHTML = '';
             
-            const filteredVideos = videosData.filter(video => !video.isFree);
-            
-            if (filteredVideos.length === 0) {
+            if (videosData.length === 0) {
                 studentVideoList.innerHTML = `
                     <div class="empty-message">
                         <p>لا توجد دروس متاحة حالياً. الرجاء العودة لاحقاً.</p>
@@ -2058,7 +1874,7 @@
                 return;
             }
             
-            filteredVideos.forEach(video => {
+            videosData.forEach(video => {
                 const videoCard = document.createElement('div');
                 videoCard.className = 'student-video-card';
                 
@@ -2089,55 +1905,13 @@
             });
         }
 
-        // عرض الفيديوهات المجانية
-        function renderFreeVideos() {
-            if (!freeVideoList) return;
-            
-            freeVideoList.innerHTML = '';
-            
-            const freeVideos = videosData.filter(video => video.isFree);
-            
-            if (freeVideos.length === 0) {
-                freeVideoList.innerHTML = `
-                    <div class="empty-message">
-                        <p>لا توجد محاضرات مجانية متاحة حالياً. الرجاء العودة لاحقاً.</p>
-                    </div>
-                `;
-                return;
+        // تحديث عدد الفيديوهات والطلاب
+        function updateTotalVideos() {
+            if (totalVideosSpan) {
+                totalVideosSpan.textContent = videosData.length;
             }
-            
-            freeVideos.forEach(video => {
-                const videoCard = document.createElement('div');
-                videoCard.className = 'student-video-card';
-                
-                let thumbnailContent = '<i class="fas fa-play-circle"></i>';
-                if (video.type === 'youtube') {
-                    thumbnailContent = '<i class="fab fa-youtube" style="color: #FF0000;"></i>';
-                } else if (video.type === 'file') {
-                    thumbnailContent = '<i class="fas fa-file-video"></i>';
-                }
-                
-                videoCard.innerHTML = `
-                    <div class="video-thumbnail">
-                        ${thumbnailContent}
-                    </div>
-                    <div class="video-info">
-                        <h3>${video.title}</h3>
-                        <p>${video.description.substring(0, 80)}...</p>
-                        <div class="video-meta">
-                            <span>${video.subject}</span>
-                            <span>${video.level}</span>
-                        </div>
-                        <button class="play-btn" onclick="watchVideo(${video.id})">
-                            <i class="fas fa-play"></i> مشاهدة الدرس
-                        </button>
-                    </div>
-                `;
-                freeVideoList.appendChild(videoCard);
-            });
         }
 
-        // تحديث عدد الطلاب
         function updateTotalStudents() {
             if (totalStudentsSpan) {
                 totalStudentsSpan.textContent = studentsData.length;
@@ -2174,7 +1948,6 @@
                 document.getElementById('video-subject').value = video.subject;
                 document.getElementById('video-level').value = video.level;
                 document.getElementById('content-type').value = video.type;
-                document.getElementById('lesson-type').value = video.isFree ? 'free' : 'paid';
                 
                 if (video.type === 'youtube') {
                     document.getElementById('youtube-link').value = video.youtubeLink || '';
@@ -2200,7 +1973,7 @@
             if (studentsData.length === 0) {
                 studentsTableBody.innerHTML = `
                     <tr>
-                        <td colspan="8" style="text-align: center; padding: 20px;">
+                        <td colspan="7" style="text-align: center; padding: 20px;">
                             لا يوجد طلاب مسجلين بعد
                         </td>
                     </tr>
@@ -2218,7 +1991,6 @@
                     <td>${student.subject}</td>
                     <td>${student.date}</td>
                     <td>${student.phone || 'غير متوفر'}</td>
-                    <td>${deviceIPs[student.code] || 'غير مسجل'}</td>
                 `;
                 studentsTableBody.appendChild(row);
             });
@@ -2267,58 +2039,17 @@
         });
 
         // تسجيل الدخول للطلاب
-        studentLoginSubmit.addEventListener('click', async function() {
+        studentLoginSubmit.addEventListener('click', function() {
             const enteredCode = studentCodeInput.value.trim();
             
             if(studentCodes.includes(enteredCode)) {
-                // الحصول على IP الجهاز
-                const clientIP = await getClientIP();
-                
-                // التحقق مما إذا كان الكود مسجل على جهاز آخر
-                if (deviceIPs[enteredCode] && deviceIPs[enteredCode] !== clientIP && deviceIPs[enteredCode] !== "unknown") {
-                    studentLoginError.textContent = 'هذا الكود مسجل بالفعل على جهاز آخر!';
-                    studentLoginError.style.display = 'block';
-                    return;
-                }
-                
-                // تسجيل IP الجهاز إذا لم يكن مسجلاً من قبل
-                if (!deviceIPs[enteredCode]) {
-                    deviceIPs[enteredCode] = clientIP;
-                    
-                    // تحديث بيانات الطالب
-                    const student = studentsData.find(s => s.code === enteredCode);
-                    if (student) {
-                        student.deviceIP = clientIP;
-                    }
-                    
-                    try {
-                        await saveDataToDB();
-                    } catch (error) {
-                        console.error("خطأ في حفظ IP الجهاز:", error);
-                    }
-                }
-                
                 studentLoginSection.style.display = 'none';
                 mainScreen.style.display = 'none';
                 studentDashboard.style.display = 'block';
                 studentLoginError.style.display = 'none';
             } else {
-                studentLoginError.textContent = 'الكود الذي أدخلته غير صحيح. يرجى المحاولة مرة أخرى.';
                 studentLoginError.style.display = 'block';
             }
-        });
-
-        // فتح المحاضرات المجانية
-        freeLessonsBtn.addEventListener('click', function(e) {
-            e.preventDefault();
-            mainScreen.style.display = 'none';
-            freeLessonsSection.style.display = 'block';
-        });
-
-        // العودة من المحاضرات المجانية
-        freeLessonsBack.addEventListener('click', function() {
-            freeLessonsSection.style.display = 'none';
-            mainScreen.style.display = 'flex';
         });
 
         // جعل الدوال متاحة عالمياً لاستخدامها في الأحداث
