@@ -848,6 +848,53 @@
                 overflow-x: auto;
             }
         }
+        
+        /* طباعة جدول الطلاب */
+        @media print {
+            body * {
+                visibility: hidden;
+            }
+            
+            .student-codes-container,
+            .student-codes-container * {
+                visibility: visible;
+            }
+            
+            .student-codes-container {
+                position: absolute;
+                left: 0;
+                top: 0;
+                width: 100%;
+                height: auto;
+                box-shadow: none;
+            }
+            
+            .modal-header, .close-modal-btn {
+                display: none;
+            }
+            
+            table {
+                width: 100%;
+                border-collapse: collapse;
+            }
+            
+            th, td {
+                border: 1px solid #ddd;
+                padding: 8px;
+            }
+            
+            th {
+                background-color: #f2f2f2;
+            }
+        }
+        
+        /* تذييل الصفحة */
+        footer {
+            text-align: center;
+            padding: 20px;
+            background-color: var(--light-gray);
+            margin-top: auto;
+        }
     </style>
 </head>
 <body>
@@ -993,6 +1040,9 @@
                             <div class="code-display" id="generated-code-display" style="display: none;">
                                 <p>تم تسجيل الطالب بنجاح!</p>
                                 <p>الكود الخاص بالطالب: <strong id="student-code-generated"></strong></p>
+                                <button id="copy-code-btn" class="save-btn" style="margin: 10px auto; width: auto;">
+                                    <i class="fas fa-copy"></i> نسخ الكود
+                                </button>
                                 <p>يمكن للطالب استخدام هذا الكود للدخول إلى النظام</p>
                             </div>
                         </div>
@@ -1017,6 +1067,24 @@
                             <div class="form-group">
                                 <label for="video-description">وصف الدرس</label>
                                 <textarea id="video-description" placeholder="أدخل وصفاً للدرس"></textarea>
+                            </div>
+                            
+                            <div class="form-group">
+                                <label>نوع المحتوى</label>
+                                <select id="content-type" class="form-control" onchange="toggleContentType()">
+                                    <option value="file">رفع ملف من الجهاز</option>
+                                    <option value="youtube">رابط يوتيوب</option>
+                                </select>
+                            </div>
+                            
+                            <div class="form-group" id="file-upload-group">
+                                <label for="video-file">اختر ملف الفيديو</label>
+                                <input type="file" id="video-file" accept="video/*">
+                            </div>
+                            
+                            <div class="form-group" id="youtube-link-group" style="display: none;">
+                                <label for="youtube-link">رابط يوتيوب</label>
+                                <input type="url" id="youtube-link" placeholder="أدخل رابط فيديو يوتيوب">
                             </div>
                             
                             <div class="form-row">
@@ -1078,25 +1146,6 @@
                                 <i class="fas fa-eye"></i> عرض الطلاب المسجلين
                             </button>
                         </div>
-                    </div>
-                </div>
-                
-                <!-- التقارير والإحصائيات -->
-                <div class="dashboard-card">
-                    <div class="card-header">
-                        <div class="icon">
-                            <i class="fas fa-chart-pie"></i>
-                        </div>
-                        <h3>تقارير وإحصائيات</h3>
-                    </div>
-                    <div class="card-content">
-                        <ul>
-                            <li><i class="fas fa-check-circle"></i> عدد الدروس المرفوعة: <span id="total-videos">0</span></li>
-                            <li><i class="fas fa-check-circle"></i> عدد الطلاب المسجلين: <span id="total-students-stat">0</span></li>
-                            <li><i class="fas fa-check-circle"></i> متوسط التقييمات: 4.8/5</li>
-                            <li><i class="fas fa-check-circle"></i> نسبة الحضور: 96%</li>
-                            <li><i class="fas fa-check-circle"></i> المواد الأكثر مشاهدة: الرياضيات</li>
-                        </ul>
                     </div>
                 </div>
             </div>
@@ -1239,6 +1288,12 @@
         </div>
     </div>
 
+    <!-- تذييل الصفحة -->
+    <footer>
+        <p>برمجة وتطوير: مهندس علي عبد الرحيم</p>
+        <p>جميع الحقوق محفوظة &copy; 2025 معهد التقدم</p>
+    </footer>
+
     <script>
         // بيانات التطبيق
         const studentCodes = [];
@@ -1267,7 +1322,6 @@
         const studentVideoList = document.getElementById('student-video-list');
         const totalVideosSpan = document.getElementById('total-videos');
         const totalStudentsSpan = document.getElementById('total-students');
-        const totalStudentsStat = document.getElementById('total-students-stat');
         const viewStudentsBtn = document.getElementById('view-students-btn');
         const studentManagementModal = document.getElementById('student-management-modal');
         const closeManagementModal = document.getElementById('close-management-modal');
@@ -1277,6 +1331,7 @@
         const registerNewStudentBtn = document.getElementById('register-new-student');
         const generatedCodeDisplay = document.getElementById('generated-code-display');
         const studentCodeGenerated = document.getElementById('student-code-generated');
+        const copyCodeBtn = document.getElementById('copy-code-btn');
         
         // بيانات تسجيل الدخول للتدريسين
         const teacherCredentials = {
@@ -1291,6 +1346,11 @@
             renderStudentVideos();
             updateTotalVideos();
             updateTotalStudents();
+        });
+        
+        // حفظ البيانات عند الخروج
+        window.addEventListener('beforeunload', function(e) {
+            saveData();
         });
         
         // فتح نافذة تسجيل الدخول للتدريسين
@@ -1324,6 +1384,7 @@
         
         // تسجيل الخروج من نظام التدريسين
         teacherLogout.addEventListener('click', function() {
+            saveData();
             teacherDashboard.style.display = 'none';
             mainScreen.style.display = 'flex';
         });
@@ -1357,9 +1418,32 @@
         
         // تسجيل الخروج من نظام الطلاب
         studentLogout.addEventListener('click', function() {
+            saveData();
             studentDashboard.style.display = 'none';
             mainScreen.style.display = 'flex';
         });
+        
+        // نسخ كود الطالب
+        copyCodeBtn?.addEventListener('click', function() {
+            const code = studentCodeGenerated.textContent;
+            navigator.clipboard.writeText(code).then(() => {
+                alert('تم نسخ الكود بنجاح!');
+            }).catch(err => {
+                console.error('Failed to copy: ', err);
+            });
+        });
+        
+        // تبديل نوع المحتوى
+        function toggleContentType() {
+            const contentType = document.getElementById('content-type').value;
+            if (contentType === 'file') {
+                document.getElementById('file-upload-group').style.display = 'block';
+                document.getElementById('youtube-link-group').style.display = 'none';
+            } else {
+                document.getElementById('file-upload-group').style.display = 'none';
+                document.getElementById('youtube-link-group').style.display = 'block';
+            }
+        }
         
         // تسجيل طالب جديد من قبل المدرس
         registerNewStudentBtn.addEventListener('click', function() {
@@ -1414,6 +1498,7 @@
             const description = document.getElementById('video-description').value;
             const subject = document.getElementById('video-subject').value;
             const level = document.getElementById('video-level').value;
+            const contentType = document.getElementById('content-type').value;
             
             if(title && description) {
                 const newVideo = {
@@ -1424,8 +1509,28 @@
                     level,
                     date: new Date().toISOString().split('T')[0],
                     views: 0,
-                    rating: 0
+                    rating: 0,
+                    type: contentType
                 };
+                
+                if (contentType === 'file') {
+                    const fileInput = document.getElementById('video-file');
+                    if (fileInput.files.length > 0) {
+                        newVideo.fileName = fileInput.files[0].name;
+                        newVideo.fileSize = (fileInput.files[0].size / (1024 * 1024)).toFixed(2) + ' MB';
+                    } else {
+                        alert('الرجاء اختيار ملف الفيديو');
+                        return;
+                    }
+                } else {
+                    const youtubeLink = document.getElementById('youtube-link').value;
+                    if (youtubeLink) {
+                        newVideo.youtubeLink = youtubeLink;
+                    } else {
+                        alert('الرجاء إدخال رابط يوتيوب صحيح');
+                        return;
+                    }
+                }
                 
                 videosData.push(newVideo);
                 saveData();
@@ -1436,6 +1541,8 @@
                 
                 document.getElementById('video-title').value = '';
                 document.getElementById('video-description').value = '';
+                document.getElementById('video-file').value = '';
+                document.getElementById('youtube-link').value = '';
                 
                 alert('تم رفع الدرس بنجاح!');
             } else {
@@ -1581,9 +1688,17 @@
             videosData.forEach(video => {
                 const videoCard = document.createElement('div');
                 videoCard.className = 'student-video-card';
+                
+                let thumbnailContent = '<i class="fas fa-play-circle"></i>';
+                if (video.type === 'youtube') {
+                    thumbnailContent = '<i class="fab fa-youtube" style="color: #FF0000;"></i>';
+                } else if (video.type === 'file') {
+                    thumbnailContent = '<i class="fas fa-file-video"></i>';
+                }
+                
                 videoCard.innerHTML = `
                     <div class="video-thumbnail">
-                        <i class="fas fa-play-circle"></i>
+                        ${thumbnailContent}
                     </div>
                     <div class="video-info">
                         <h3>${video.title}</h3>
@@ -1612,16 +1727,19 @@
             if (totalStudentsSpan) {
                 totalStudentsSpan.textContent = studentsData.length;
             }
-            if (totalStudentsStat) {
-                totalStudentsStat.textContent = studentsData.length;
-            }
         }
         
         // مشاهدة فيديو
         function watchVideo(id) {
             const video = videosData.find(v => v.id === id);
             if (video) {
-                alert(`جاري تحميل الدرس: ${video.title}\n\n${video.description}`);
+                if (video.type === 'youtube') {
+                    // افتح رابط اليوتيوب في نافذة جديدة
+                    window.open(video.youtubeLink, '_blank');
+                } else {
+                    // عرض رسالة للملفات المحملة
+                    alert(`جاري تحميل الملف: ${video.fileName}\n\nحجم الملف: ${video.fileSize}`);
+                }
                 video.views++;
                 saveData();
                 renderUploadedVideos();
