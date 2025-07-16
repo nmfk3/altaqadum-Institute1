@@ -2438,7 +2438,8 @@
                         mainScreen.style.display = 'none';
                         studentDashboard.style.display = 'block';
                         studentLoginError.style.display = 'none';
-                        alert('تم تسجيل الدخول بنجاح! تم ربط الكود بجهازك.');
+                        // ******* تم إزالة رسالة "تم تسجيل الدخول بنجاح! تم ربط الكود بجهازك." هنا *******
+                        // alert('تم تسجيل الدخول بنجاح! تم ربط الكود بجهازك.'); // هذا السطر كان يسبب ظهور الرسالة
                     } catch (error) {
                         console.error("خطأ في تحديث deviceId للطالب:", error);
                         studentLoginError.textContent = 'حدث خطأ أثناء ربط الكود بجهازك. الرجاء المحاولة مرة أخرى.';
