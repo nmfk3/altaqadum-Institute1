@@ -2036,7 +2036,2069 @@
         // إغلاق نافذة تسجيل الدخول للطلاب
         closeStudentLoginBtn.addEventListener('click', function() {
             studentLoginSection.style.display = 'none';
+        });<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>معهد التقدم للدروس الخصوصية</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@300;400;500;700;800&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #FF6B00;
+            --primary-light: #FF9E58;
+            --primary-dark: #D45A00;
+            --secondary: #FFFFFF;
+            --text: #333333;
+            --light-gray: #F5F5F5;
+            --gray: #E0E0E0;
+            --success: #28a745;
+            --success-dark: #218838;
+            --error: #e74c3c;
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Tajawal', sans-serif;
+        }
+        
+        body {
+            background: linear-gradient(135deg, #fff8f0 0%, #ffffff 100%);
+            color: var(--text);
+            line-height: 1.6;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 20px;
+        }
+        
+        /* شريط التنقل */
+        .navbar {
+            background-color: var(--secondary);
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            padding: 15px 0;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+        
+        .nav-container {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .logo {
+            display: flex;
+            align-items: center;
+        }
+        
+        .logo h1 {
+            font-size: 1.8rem;
+            color: var(--primary);
+            font-weight: 800;
+        }
+        
+        .logo i {
+            color: var(--primary);
+            font-size: 2rem;
+            margin-left: 10px;
+        }
+        
+        /* الواجهة الرئيسية */
+        .main-screen {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            padding: 40px 0;
+        }
+        
+        .welcome-message {
+            text-align: center;
+            margin-bottom: 60px;
+        }
+        
+        .welcome-message h1 {
+            font-size: 2.8rem;
+            color: var(--primary);
+            margin-bottom: 20px;
+            font-weight: 800;
+        }
+        
+        .welcome-message p {
+            font-size: 1.2rem;
+            max-width: 700px;
+            margin: 0 auto;
+            color: #555;
+            line-height: 1.8;
+        }
+        
+        .system-selection {
+            display: flex;
+            justify-content: center;
+            flex-wrap: wrap;
+            gap: 40px;
+            margin-top: 30px;
+        }
+        
+        .system-card {
+            background-color: var(--secondary);
+            border-radius: 20px;
+            width: 380px;
+            height: 420px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 40px 30px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .system-card:hover {
+            transform: translateY(-10px);
+            box-shadow: 0 15px 40px rgba(0,0,0,0.15);
+        }
+        
+        .system-card.teacher-system {
+            border-top: 6px solid var(--primary);
+        }
+        
+        .system-card.student-system {
+            border-top: 6px solid var(--primary);
+        }
+        
+        .system-icon {
+            width: 120px;
+            height: 120px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 30px;
+            font-size: 3.5rem;
+            background-color: rgba(255, 107, 0, 0.1);
+            color: var(--primary);
+            border: 3px solid var(--primary);
+        }
+        
+        .system-card h2 {
+            font-size: 1.8rem;
+            margin-bottom: 20px;
+            text-align: center;
+            color: var(--primary);
+        }
+        
+        .system-card p {
+            text-align: center;
+            color: #666;
+            margin-bottom: 30px;
+            line-height: 1.7;
+            flex-grow: 1;
+        }
+        
+        .system-card .btn {
+            display: inline-block;
+            padding: 14px 40px;
+            border-radius: 30px;
+            text-decoration: none;
+            font-weight: 600;
+            font-size: 1.1rem;
+            transition: all 0.3s;
+            width: 80%;
+            text-align: center;
+            background-color: var(--primary);
+            color: white;
+            border: 2px solid var(--primary);
+        }
+        
+        .system-card .btn:hover {
+            background-color: var(--primary-dark);
+            border-color: var(--primary-dark);
+        }
+        
+        .system-card .btn.secondary {
+            background-color: white;
+            color: var(--primary);
+            margin-top: 10px;
+        }
+        
+        .system-card .btn.secondary:hover {
+            background-color: var(--light-gray);
+        }
+        
+        .lock-icon {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            color: var(--primary);
+            font-size: 1.5rem;
+        }
+        
+        /* نظام تسجيل الدخول للتدريسين */
+        .login-section {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.7);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+        }
+        
+        .login-container {
+            background-color: white;
+            border-radius: 20px;
+            width: 100%;
+            max-width: 450px;
+            padding: 40px;
+            box-shadow: 0 15px 50px rgba(0,0,0,0.3);
+            position: relative;
+            animation: slideIn 0.5s ease;
+        }
+        
+        @keyframes slideIn {
+            from { transform: translateY(-50px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+        
+        .login-header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        
+        .login-header h2 {
+            font-size: 1.8rem;
+            color: var(--primary);
+            margin-bottom: 10px;
+        }
+        
+        .login-header p {
+            color: #777;
+        }
+        
+        .close-btn {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            background: none;
+            border: none;
+            font-size: 1.5rem;
+            color: #999;
+            cursor: pointer;
+            transition: color 0.3s;
+        }
+        
+        .close-btn:hover {
+            color: var(--primary);
+        }
+        
+        .form-group {
+            margin-bottom: 25px;
+        }
+        
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #555;
+        }
+        
+        .form-group input {
+            width: 100%;
+            padding: 14px 20px;
+            border: 2px solid var(--gray);
+            border-radius: 12px;
+            font-size: 1rem;
+            transition: border-color 0.3s;
+        }
+        
+        .form-group input:focus {
+            outline: none;
+            border-color: var(--primary);
+        }
+        
+        .login-btn {
+            background-color: var(--primary);
+            color: white;
+            border: none;
+            border-radius: 12px;
+            padding: 16px;
+            font-size: 1.1rem;
+            font-weight: 600;
+            cursor: pointer;
+            width: 100%;
+            transition: background-color 0.3s;
+            margin-top: 10px;
+        }
+        
+        .login-btn:hover {
+            background-color: var(--primary-dark);
+        }
+        
+        .error-message {
+            color: var(--error);
+            text-align: center;
+            margin-top: 15px;
+            display: none;
+        }
+        
+        /* نظام التدريسين */
+        .teacher-dashboard {
+            display: none;
+            padding: 40px 0;
+        }
+        
+        .dashboard-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 40px;
+            padding-bottom: 20px;
+            border-bottom: 2px solid var(--light-gray);
+        }
+        
+        .dashboard-title {
+            display: flex;
+            align-items: center;
+        }
+        
+        .dashboard-title h1 {
+            font-size: 2rem;
+            color: var(--primary);
+            margin-right: 15px;
+        }
+        
+        .dashboard-title .icon {
+            width: 50px;
+            height: 50px;
+            background-color: rgba(255, 107, 0, 0.1);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            color: var(--primary);
+        }
+        
+        .logout-btn {
+            background-color: var(--primary);
+            color: white;
+            border: none;
+            border-radius: 30px;
+            padding: 10px 25px;
+            font-weight: 600;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            transition: background-color 0.3s;
+        }
+        
+        .logout-btn:hover {
+            background-color: var(--primary-dark);
+        }
+        
+        .dashboard-content {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 30px;
+            margin-bottom: 40px;
+        }
+        
+        .dashboard-card {
+            background-color: var(--secondary);
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 8px 20px rgba(0,0,0,0.05);
+            transition: transform 0.3s;
+        }
+        
+        .dashboard-card:hover {
+            transform: translateY(-5px);
+        }
+        
+        .card-header {
+            display: flex;
+            align-items: center;
+            margin-bottom: 25px;
+            padding-bottom: 15px;
+            border-bottom: 2px solid var(--light-gray);
+        }
+        
+        .card-header .icon {
+            width: 50px;
+            height: 50px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            margin-left: 15px;
+            background-color: rgba(255, 107, 0, 0.1);
+            color: var(--primary);
+        }
+        
+        .card-header h3 {
+            font-size: 1.4rem;
+            color: #444;
+        }
+        
+        .card-content {
+            max-height: 300px;
+            overflow-y: auto;
+            padding-right: 10px;
+        }
+        
+        .card-content::-webkit-scrollbar {
+            width: 8px;
+        }
+        
+        .card-content::-webkit-scrollbar-track {
+            background: #f1f1f1;
+            border-radius: 4px;
+        }
+        
+        .card-content::-webkit-scrollbar-thumb {
+            background: var(--primary-light);
+            border-radius: 4px;
+        }
+        
+        .upload-form {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+        
+        .form-row {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 10px;
+        }
+        
+        .form-row .form-group {
+            flex: 1;
+            margin-bottom: 0;
+        }
+        
+        .form-group textarea {
+            width: 100%;
+            padding: 14px 20px;
+            border: 2px solid var(--gray);
+            border-radius: 12px;
+            font-size: 1rem;
+            transition: border-color 0.3s;
+            min-height: 120px;
+            resize: vertical;
+        }
+        
+        .form-group textarea:focus {
+            outline: none;
+            border-color: var(--primary);
+        }
+        
+        .save-btn {
+            background-color: var(--primary);
+            color: white;
+            border: none;
+            border-radius: 12px;
+            padding: 14px 30px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background-color 0.3s;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-top: 10px;
+        }
+        
+        .save-btn:hover {
+            background-color: var(--primary-dark);
+        }
+        
+        .register-student-btn {
+            background-color: var(--success);
+            color: white;
+            border: none;
+            border-radius: 12px;
+            padding: 14px 30px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background-color 0.3s;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-top: 10px;
+            width: 100%;
+            justify-content: center;
+        }
+        
+        .register-student-btn:hover {
+            background-color: var(--success-dark);
+        }
+        
+        .video-item {
+            background-color: var(--light-gray);
+            border-radius: 12px;
+            padding: 15px;
+            margin-bottom: 15px;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .video-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+        
+        .video-title {
+            font-weight: 600;
+            color: var(--primary);
+            font-size: 1.1rem;
+        }
+        
+        .video-date {
+            color: #777;
+            font-size: 0.9rem;
+        }
+        
+        .video-description {
+            color: #555;
+            margin-bottom: 10px;
+        }
+        
+        .video-meta {
+            display: flex;
+            justify-content: space-between;
+            color: #777;
+            font-size: 0.9rem;
+        }
+        
+        .video-actions {
+            display: flex;
+            gap: 10px;
+            margin-top: 10px;
+        }
+        
+        .action-btn {
+            padding: 8px 15px;
+            border-radius: 8px;
+            border: none;
+            cursor: pointer;
+            font-size: 0.9rem;
+            transition: all 0.3s;
+        }
+        
+        .edit-btn {
+            background-color: #3498db;
+            color: white;
+        }
+        
+        .delete-btn {
+            background-color: #e74c3c;
+            color: white;
+        }
+        
+        /* نظام الطلاب */
+        .student-dashboard {
+            display: none;
+            padding: 40px 0;
+        }
+        
+        .student-dashboard .dashboard-title h1 {
+            color: var(--primary);
+        }
+        
+        .student-dashboard .icon {
+            background-color: rgba(255, 107, 0, 0.1);
+            color: var(--primary);
+        }
+        
+        .student-dashboard .card-header .icon {
+            background-color: rgba(255, 107, 0, 0.1);
+            color: var(--primary);
+        }
+        
+        .student-dashboard .card-content li i {
+            color: var(--primary);
+        }
+        
+        .student-dashboard .logout-btn {
+            background-color: var(--primary);
+        }
+        
+        .student-dashboard .logout-btn:hover {
+            background-color: var(--primary-dark);
+        }
+        
+        .student-welcome {
+            text-align: center;
+            margin-bottom: 40px;
+            padding: 30px;
+            background: linear-gradient(135deg, rgba(255,107,0,0.1) 0%, rgba(255,158,88,0.1) 100%);
+            border-radius: 15px;
+        }
+        
+        .student-welcome h2 {
+            font-size: 2rem;
+            color: var(--primary);
+            margin-bottom: 15px;
+        }
+        
+        .student-welcome p {
+            font-size: 1.1rem;
+            max-width: 700px;
+            margin: 0 auto;
+            color: #555;
+        }
+        
+        .student-video-list {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 25px;
+        }
+        
+        .student-video-card {
+            background-color: var(--secondary);
+            border-radius: 15px;
+            overflow: hidden;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.05);
+            transition: transform 0.3s;
+        }
+        
+        .student-video-card:hover {
+            transform: translateY(-8px);
+        }
+        
+        .video-thumbnail {
+            height: 180px;
+            background: linear-gradient(45deg, var(--primary-light), var(--primary));
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 4rem;
+        }
+        
+        .video-info {
+            padding: 20px;
+        }
+        
+        .video-info h3 {
+            font-size: 1.2rem;
+            margin-bottom: 10px;
+            color: var(--primary);
+        }
+        
+        .video-meta {
+            display: flex;
+            justify-content: space-between;
+            color: #666;
+            font-size: 0.9rem;
+            margin-top: 15px;
+        }
+        
+        .play-btn {
+            background-color: var(--primary);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            padding: 8px 15px;
+            cursor: pointer;
+            margin-top: 15px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        /* نظام تسجيل الدخول للطلاب */
+        .student-login-section {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.7);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+        }
+        
+        .student-login-container {
+            background-color: white;
+            border-radius: 20px;
+            width: 100%;
+            max-width: 450px;
+            padding: 40px;
+            box-shadow: 0 15px 50px rgba(0,0,0,0.3);
+            position: relative;
+            animation: slideIn 0.5s ease;
+        }
+        
+        /* نافذة أكواد الطلاب */
+        .student-codes-modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.8);
+            z-index: 2000;
+            justify-content: center;
+            align-items: center;
+        }
+        
+        .student-codes-container {
+            background-color: white;
+            border-radius: 15px;
+            width: 90%;
+            max-width: 1000px;
+            max-height: 80vh;
+            padding: 20px;
+            overflow-y: auto;
+        }
+        
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 2px solid var(--light-gray);
+        }
+        
+        .modal-header h2 {
+            color: var(--primary);
+        }
+        
+        .close-modal-btn {
+            background: none;
+            border: none;
+            font-size: 1.5rem;
+            cursor: pointer;
+            color: #777;
+        }
+        
+        .close-modal-btn:hover {
+            color: var(--primary);
+        }
+        
+        /* جدول الطلاب */
+        .students-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+        
+        .students-table th, 
+        .students-table td {
+            padding: 12px 15px;
+            text-align: center;
+            border-bottom: 1px solid #eee;
+        }
+        
+        .students-table th {
+            background-color: rgba(255, 107, 0, 0.1);
+            color: var(--primary);
+            font-weight: 700;
+        }
+        
+        .students-table tr:hover {
+            background-color: rgba(255, 107, 0, 0.05);
+        }
+        
+        /* كود الطالب المولد */
+        .code-display {
+            background-color: #f8f9fa;
+            border: 2px dashed #6c757d;
+            border-radius: 8px;
+            padding: 15px;
+            margin-top: 20px;
+            text-align: center;
+            font-size: 1.2rem;
+            font-weight: bold;
+            color: var(--primary);
+        }
+        
+        .code-display p {
+            margin-bottom: 10px;
+        }
+        
+        .code-display strong {
+            font-size: 1.4rem;
+            color: var(--success);
+        }
+        
+        /* التجاوب مع الشاشات الصغيرة */
+        @media (max-width: 768px) {
+            .nav-container {
+                flex-direction: column;
+            }
+            
+            .logo {
+                margin-bottom: 15px;
+            }
+            
+            .welcome-message h1 {
+                font-size: 2.2rem;
+            }
+            
+            .system-selection {
+                flex-direction: column;
+                align-items: center;
+            }
+            
+            .system-card {
+                width: 100%;
+                max-width: 380px;
+            }
+            
+            .dashboard-content {
+                grid-template-columns: 1fr;
+            }
+            
+            .form-row {
+                flex-direction: column;
+                gap: 10px;
+            }
+            
+            .students-table {
+                display: block;
+                overflow-x: auto;
+            }
+        }
+        
+        /* طباعة جدول الطلاب */
+        @media print {
+            body * {
+                visibility: hidden;
+            }
+            
+            .student-codes-container,
+            .student-codes-container * {
+                visibility: visible;
+            }
+            
+            .student-codes-container {
+                position: absolute;
+                left: 0;
+                top: 0;
+                width: 100%;
+                height: auto;
+                box-shadow: none;
+            }
+            
+            .modal-header, .close-modal-btn {
+                display: none;
+            }
+            
+            table {
+                width: 100%;
+                border-collapse: collapse;
+            }
+            
+            th, td {
+                border: 1px solid #ddd;
+                padding: 8px;
+            }
+            
+            th {
+                background-color: #f2f2f2;
+            }
+        }
+        
+        /* تذييل الصفحة */
+        footer {
+            text-align: center;
+            padding: 20px;
+            background-color: var(--light-gray);
+            margin-top: auto;
+        }
+        
+        /* مؤشر التحميل */
+        .loader {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.5);
+            z-index: 3000;
+            justify-content: center;
+            align-items: center;
+        }
+        
+        .loader-content {
+            background-color: white;
+            padding: 30px;
+            border-radius: 10px;
+            text-align: center;
+        }
+        
+        .spinner {
+            border: 5px solid #f3f3f3;
+            border-top: 5px solid var(--primary);
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 20px;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body>
+    <!-- شريط التنقل -->
+    <nav class="navbar">
+        <div class="container nav-container">
+            <div class="logo">
+                <i class="fas fa-graduation-cap"></i>
+                <h1>معهد <span>التقدم</span></h1>
+            </div>
+        </div>
+    </nav>
+    
+    <!-- الشاشة الرئيسية -->
+    <div class="main-screen" id="main-screen">
+        <div class="container">
+            <div class="welcome-message">
+                <h1>مرحباً بكم في معهد التقدم</h1>
+                <p>منصة تعليمية متكاملة تقدم أفضل الدروس الخصوصية في مختلف المواد الدراسية. تمتع بتجربة تعليمية فريدة مع أفضل المدرسين والمواد التعليمية المتميزة.</p>
+            </div>
+            
+            <div class="system-selection">
+                <!-- نظام التدريسين -->
+                <div class="system-card teacher-system">
+                    <i class="fas fa-lock lock-icon"></i>
+                    <div class="system-icon">
+                        <i class="fas fa-chalkboard-teacher"></i>
+                    </div>
+                    <h2>نظام التدريسين</h2>
+                    <p>منصة متكاملة تمكن المدرسين من إدارة الدروس، متابعة الطلاب، رفع المحتوى التعليمي، وتقييم أداء الطلاب بكل سهولة وفعالية.</p>
+                    <a href="#" class="btn" id="teacher-login-btn">الدخول إلى النظام</a>
+                </div>
+                
+                <!-- نظام الطلاب -->
+                <div class="system-card student-system">
+                    <div class="system-icon">
+                        <i class="fas fa-user-graduate"></i>
+                    </div>
+                    <h2>نظام الطلاب</h2>
+                    <p>منصة تعليمية متكاملة تتيح للطلاب الوصول إلى الدروس، حل الواجبات، متابعة التقدم الدراسي، والتفاعل مع المدرسين بكل سهولة.</p>
+                    <a href="#" class="btn" id="student-login-btn">الدخول إلى النظام</a>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- مؤشر التحميل -->
+    <div class="loader" id="loader">
+        <div class="loader-content">
+            <div class="spinner"></div>
+            <p>جاري تحميل البيانات...</p>
+        </div>
+    </div>
+    
+    <!-- نظام تسجيل الدخول للتدريسين -->
+    <div class="login-section" id="teacher-login">
+        <div class="login-container">
+            <button class="close-btn" id="close-login">&times;</button>
+            <div class="login-header">
+                <h2><i class="fas fa-chalkboard-teacher"></i> نظام التدريسين</h2>
+                <p>يجب تسجيل الدخول للوصول إلى لوحة التحكم</p>
+            </div>
+            
+            <div class="form-group">
+                <label for="username">اسم المستخدم</label>
+                <input type="text" id="username" placeholder="أدخل اسم المستخدم" autocomplete="off">
+            </div>
+            
+            <div class="form-group">
+                <label for="password">كلمة المرور</label>
+                <input type="password" id="password" placeholder="أدخل كلمة المرور">
+            </div>
+            
+            <div class="error-message" id="login-error">
+                اسم المستخدم أو كلمة المرور غير صحيحة!
+            </div>
+            
+            <button class="login-btn" id="teacher-login-submit">
+                <i class="fas fa-sign-in-alt"></i> تسجيل الدخول
+            </button>
+        </div>
+    </div>
+    
+    <!-- نظام التدريسين -->
+    <div class="teacher-dashboard" id="teacher-dashboard">
+        <div class="container">
+            <div class="dashboard-header">
+                <div class="dashboard-title">
+                    <h1><i class="fas fa-chalkboard-teacher"></i> لوحة تحكم التدريسين</h1>
+                    <div class="icon">
+                        <i class="fas fa-user-tie"></i>
+                    </div>
+                </div>
+                <button class="logout-btn" id="teacher-logout">
+                    <i class="fas fa-sign-out-alt"></i> تسجيل الخروج
+                </button>
+            </div>
+            
+            <div class="dashboard-content">
+                <!-- تسجيل طالب جديد -->
+                <div class="dashboard-card">
+                    <div class="card-header">
+                        <div class="icon">
+                            <i class="fas fa-user-plus"></i>
+                        </div>
+                        <h3>تسجيل طالب جديد</h3>
+                    </div>
+                    <div class="card-content">
+                        <div class="upload-form">
+                            <div class="form-group">
+                                <label for="new-student-name">الاسم الكامل</label>
+                                <input type="text" id="new-student-name" placeholder="أدخل الاسم الكامل للطالب">
+                            </div>
+                            
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label for="new-student-phone">رقم الهاتف</label>
+                                    <input type="tel" id="new-student-phone" placeholder="أدخل رقم الهاتف">
+                                </div>
+                                <div class="form-group">
+                                    <label for="new-student-email">البريد الإلكتروني (اختياري)</label>
+                                    <input type="email" id="new-student-email" placeholder="أدخل البريد الإلكتروني">
+                                </div>
+                            </div>
+                            
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label for="new-student-grade">الصف الدراسي</label>
+                                    <select id="new-student-grade" class="form-control">
+                                        <option value="الأول ثانوي">الأول ثانوي</option>
+                                        <option value="الثاني ثانوي">الثاني ثانوي</option>
+                                        <option value="الثالث ثانوي">الثالث ثانوي</option>
+                                    </select>
+                                </div>
+                                <div class="form-group">
+                                    <label for="new-student-subject">المادة الرئيسية</label>
+                                    <select id="new-student-subject" class="form-control">
+                                        <option value="رياضيات">الرياضيات</option>
+                                        <option value="فيزياء">الفيزياء</option>
+                                        <option value="كيمياء">الكيمياء</option>
+                                        <option value="لغة عربية">اللغة العربية</option>
+                                        <option value="لغة إنجليزية">اللغة الإنجليزية</option>
+                                    </select>
+                                </div>
+                            </div>
+                            
+                            <button class="register-student-btn" id="register-new-student">
+                                <i class="fas fa-user-plus"></i> تسجيل الطالب
+                            </button>
+                            
+                            <div class="code-display" id="generated-code-display" style="display: none;">
+                                <p>تم تسجيل الطالب بنجاح!</p>
+                                <p>الكود الخاص بالطالب: <strong id="student-code-generated"></strong></p>
+                                <button id="copy-code-btn" class="save-btn" style="margin: 10px auto; width: auto;">
+                                    <i class="fas fa-copy"></i> نسخ الكود
+                                </button>
+                                <p>يمكن للطالب استخدام هذا الكود للدخول إلى النظام</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- رفع المحتوى التعليمي -->
+                <div class="dashboard-card">
+                    <div class="card-header">
+                        <div class="icon">
+                            <i class="fas fa-upload"></i>
+                        </div>
+                        <h3>رفع محتوى تعليمي جديد</h3>
+                    </div>
+                    <div class="card-content">
+                        <div class="upload-form">
+                            <div class="form-group">
+                                <label for="video-title">عنوان الدرس</label>
+                                <input type="text" id="video-title" placeholder="أدخل عنوان الدرس">
+                            </div>
+                            
+                            <div class="form-group">
+                                <label for="video-description">وصف الدرس</label>
+                                <textarea id="video-description" placeholder="أدخل وصفاً للدرس"></textarea>
+                            </div>
+                            
+                            <div class="form-group">
+                                <label>نوع المحتوى</label>
+                                <select id="content-type" class="form-control" onchange="toggleContentType()">
+                                    <option value="file">رفع ملف من الجهاز</option>
+                                    <option value="youtube">رابط يوتيوب</option>
+                                </select>
+                            </div>
+                            
+                            <div class="form-group" id="file-upload-group">
+                                <label for="video-file">اختر ملف الفيديو</label>
+                                <input type="file" id="video-file" accept="video/*">
+                            </div>
+                            
+                            <div class="form-group" id="youtube-link-group" style="display: none;">
+                                <label for="youtube-link">رابط يوتيوب</label>
+                                <input type="url" id="youtube-link" placeholder="أدخل رابط فيديو يوتيوب">
+                            </div>
+                            
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label for="video-subject">المادة الدراسية</label>
+                                    <select id="video-subject" class="form-control">
+                                        <option value="رياضيات">الرياضيات</option>
+                                        <option value="فيزياء">الفيزياء</option>
+                                        <option value="كيمياء">الكيمياء</option>
+                                        <option value="لغة عربية">اللغة العربية</option>
+                                        <option value="لغة إنجليزية">اللغة الإنجليزية</option>
+                                    </select>
+                                </div>
+                                <div class="form-group">
+                                    <label for="video-level">الصف الدراسي</label>
+                                    <select id="video-level" class="form-control">
+                                        <option value="الأول ثانوي">الأول ثانوي</option>
+                                        <option value="الثاني ثانوي">الثاني ثانوي</option>
+                                        <option value="الثالث ثانوي">الثالث ثانوي</option>
+                                    </select>
+                                </div>
+                            </div>
+                            
+                            <button class="save-btn" id="upload-video">
+                                <i class="fas fa-upload"></i> رفع الدرس
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- المحتوى المرفوع -->
+                <div class="dashboard-card">
+                    <div class="card-header">
+                        <div class="icon">
+                            <i class="fas fa-video"></i>
+                        </div>
+                        <h3>الدروس المرفوعة</h3>
+                    </div>
+                    <div class="card-content" id="uploaded-videos">
+                        <div class="empty-message">
+                            <p>لم تقم برفع أي دروس بعد. ابدأ برفع دروسك الأولى!</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- إدارة الطلاب -->
+                <div class="dashboard-card">
+                    <div class="card-header">
+                        <div class="icon">
+                            <i class="fas fa-users"></i>
+                        </div>
+                        <h3>إدارة الطلاب</h3>
+                    </div>
+                    <div class="card-content">
+                        <div class="student-codes-info">
+                            <p>عدد الطلاب المسجلين: <strong><span id="total-students">0</span></strong></p>
+                            <p>السنة الدراسية: <strong>2025</strong></p>
+                            <button id="view-students-btn" class="save-btn">
+                                <i class="fas fa-eye"></i> عرض الطلاب المسجلين
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- نظام تسجيل الدخول للطلاب -->
+    <div class="student-login-section" id="student-login-section">
+        <div class="student-login-container">
+            <button class="close-btn" id="close-student-login">&times;</button>
+            <div class="login-header">
+                <h2><i class="fas fa-user-graduate"></i> نظام الطلاب</h2>
+                <p>أدخل الكود الخاص بك للدخول إلى المنصة التعليمية</p>
+            </div>
+            
+            <div class="form-group">
+                <label for="student-code-input">الكود الخاص</label>
+                <input type="text" id="student-code-input" placeholder="أدخل الكود الذي حصلت عليه">
+            </div>
+            
+            <div class="error-message" id="student-login-error">
+                الكود الذي أدخلته غير صحيح. يرجى المحاولة مرة أخرى.
+            </div>
+            
+            <button class="login-btn" id="student-login-submit">
+                <i class="fas fa-sign-in-alt"></i> الدخول إلى المنصة
+            </button>
+        </div>
+    </div>
+    
+    <!-- نظام الطلاب -->
+    <div class="student-dashboard" id="student-dashboard">
+        <div class="container">
+            <div class="dashboard-header">
+                <div class="dashboard-title">
+                    <h1><i class="fas fa-user-graduate"></i> لوحة تحكم الطلاب</h1>
+                    <div class="icon">
+                        <i class="fas fa-user"></i>
+                    </div>
+                </div>
+                <button class="logout-btn" id="student-logout">
+                    <i class="fas fa-sign-out-alt"></i> تسجيل الخروج
+                </button>
+            </div>
+            
+            <div class="student-welcome">
+                <h2>مرحباً بك في معهد التقدم</h2>
+                <p>يمكنك الآن الاستفادة من جميع خدمات المنصة التعليمية. استكشف الدروس والمواد التعليمية المتاحة لك وابدأ رحلتك التعليمية مع أفضل المدرسين.</p>
+            </div>
+            
+            <div class="dashboard-content">
+                <div class="dashboard-card">
+                    <div class="card-header">
+                        <div class="icon">
+                            <i class="fas fa-book"></i>
+                        </div>
+                        <h3>المواد الدراسية</h3>
+                    </div>
+                    <div class="card-content">
+                        <ul>
+                            <li><i class="fas fa-check-circle"></i> الرياضيات - الأستاذ أحمد</li>
+                            <li><i class="fas fa-check-circle"></i> الفيزياء - الأستاذ محمد</li>
+                            <li><i class="fas fa-check-circle"></i> الكيمياء - الأستاذة سارة</li>
+                            <li><i class="fas fa-check-circle"></i> اللغة العربية - الأستاذ علي</li>
+                            <li><i class="fas fa-check-circle"></i> اللغة الإنجليزية - الأستاذة ليلى</li>
+                        </ul>
+                    </div>
+                </div>
+                
+                <div class="dashboard-card">
+                    <div class="card-header">
+                        <div class="icon">
+                            <i class="fas fa-play-circle"></i>
+                        </div>
+                        <h3>الدروس المتاحة</h3>
+                    </div>
+                    <div class="card-content">
+                        <div class="student-video-list" id="student-video-list">
+                            <!-- سيتم ملؤها بالدروس -->
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="dashboard-card">
+                    <div class="card-header">
+                        <div class="icon">
+                            <i class="fas fa-chart-line"></i>
+                        </div>
+                        <h3>التقدم الدراسي</h3>
+                    </div>
+                    <div class="card-content">
+                        <ul>
+                            <li><i class="fas fa-percentage"></i> الرياضيات: 92% (ممتاز)</li>
+                            <li><i class="fas fa-percentage"></i> الفيزياء: 85% (جيد جداً)</li>
+                            <li><i class="fas fa-percentage"></i> الكيمياء: 78% (جيد)</li>
+                            <li><i class="fas fa-percentage"></i> اللغة العربية: 95% (ممتاز)</li>
+                            <li><i class="fas fa-percentage"></i> اللغة الإنجليزية: 88% (جيد جداً)</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- نافذة إدارة الطلاب -->
+    <div class="student-codes-modal" id="student-management-modal">
+        <div class="student-codes-container">
+            <div class="modal-header">
+                <h2><i class="fas fa-users"></i> إدارة الطلاب المسجلين</h2>
+                <button class="close-modal-btn" id="close-management-modal">&times;</button>
+            </div>
+            
+            <div style="display: flex; justify-content: space-between; margin-bottom: 15px;">
+                <div>
+                    <p>عدد الطلاب المسجلين: <strong id="students-count">0</strong></p>
+                </div>
+                <div>
+                    <button id="print-students-btn" class="save-btn">
+                        <i class="fas fa-print"></i> طباعة القائمة
+                    </button>
+                </div>
+            </div>
+            
+            <table class="students-table">
+                <thead>
+                    <tr>
+                        <th>#</th>
+                        <th>الاسم الكامل</th>
+                        <th>الكود الخاص</th>
+                        <th>الصف الدراسي</th>
+                        <th>المادة الرئيسية</th>
+                        <th>تاريخ التسجيل</th>
+                        <th>الهاتف</th>
+                    </tr>
+                </thead>
+                <tbody id="students-table-body">
+                    <!-- سيتم ملؤها بالطلاب -->
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- تذييل الصفحة -->
+    <footer>
+        <p>برمجة وتطوير: مهندس علي عبد الرحيم</p>
+        <p>جميع الحقوق محفوظة &copy; 2025 معهد التقدم</p>
+    </footer>
+
+    <script>
+        // بيانات التطبيق
+        const studentCodes = [];
+        const studentsData = [];
+        const videosData = [];
+        
+        // عناصر DOM
+        const mainScreen = document.getElementById('main-screen');
+        const teacherLoginBtn = document.getElementById('teacher-login-btn');
+        const teacherLoginSection = document.getElementById('teacher-login');
+        const closeLoginBtn = document.getElementById('close-login');
+        const teacherLoginSubmit = document.getElementById('teacher-login-submit');
+        const loginError = document.getElementById('login-error');
+        const teacherDashboard = document.getElementById('teacher-dashboard');
+        const teacherLogout = document.getElementById('teacher-logout');
+        const studentLoginBtn = document.getElementById('student-login-btn');
+        const studentLoginSection = document.getElementById('student-login-section');
+        const closeStudentLoginBtn = document.getElementById('close-student-login');
+        const studentLoginSubmit = document.getElementById('student-login-submit');
+        const studentLoginError = document.getElementById('student-login-error');
+        const studentCodeInput = document.getElementById('student-code-input');
+        const studentDashboard = document.getElementById('student-dashboard');
+        const studentLogout = document.getElementById('student-logout');
+        const uploadVideoBtn = document.getElementById('upload-video');
+        const uploadedVideosContainer = document.getElementById('uploaded-videos');
+        const studentVideoList = document.getElementById('student-video-list');
+        const totalVideosSpan = document.getElementById('total-videos');
+        const totalStudentsSpan = document.getElementById('total-students');
+        const viewStudentsBtn = document.getElementById('view-students-btn');
+        const studentManagementModal = document.getElementById('student-management-modal');
+        const closeManagementModal = document.getElementById('close-management-modal');
+        const studentsTableBody = document.getElementById('students-table-body');
+        const studentsCount = document.getElementById('students-count');
+        const printStudentsBtn = document.getElementById('print-students-btn');
+        const registerNewStudentBtn = document.getElementById('register-new-student');
+        const generatedCodeDisplay = document.getElementById('generated-code-display');
+        const studentCodeGenerated = document.getElementById('student-code-generated');
+        const copyCodeBtn = document.getElementById('copy-code-btn');
+        const loader = document.getElementById('loader');
+        
+        // بيانات تسجيل الدخول للتدريسين
+        const teacherCredentials = {
+            username: "teacher",
+            password: "T1234@2025"
+        };
+
+        // تعريف قاعدة البيانات IndexedDB
+        let db;
+        const DB_NAME = "InstituteDB";
+        const DB_VERSION = 2; // زيادة رقم الإصدار لتجنب المشاكل
+        const STUDENTS_STORE = "students";
+        const VIDEOS_STORE = "videos";
+        const CODES_STORE = "codes";
+
+        // عرض مؤشر التحميل
+        function showLoader() {
+            loader.style.display = 'flex';
+        }
+
+        // إخفاء مؤشر التحميل
+        function hideLoader() {
+            loader.style.display = 'none';
+        }
+
+        // تهيئة قاعدة البيانات
+        function initDB() {
+            return new Promise((resolve, reject) => {
+                const request = indexedDB.open(DB_NAME, DB_VERSION);
+                
+                request.onerror = function(event) {
+                    console.error("خطأ في فتح قاعدة البيانات:", event.target.error);
+                    hideLoader();
+                    reject("خطأ في فتح قاعدة البيانات");
+                };
+                
+                request.onsuccess = function(event) {
+                    db = event.target.result;
+                    console.log("تم فتح قاعدة البيانات بنجاح");
+                    resolve(db);
+                };
+                
+                request.onupgradeneeded = function(event) {
+                    const db = event.target.result;
+                    
+                    if (!db.objectStoreNames.contains(STUDENTS_STORE)) {
+                        db.createObjectStore(STUDENTS_STORE, { keyPath: "id" });
+                    }
+                    
+                    if (!db.objectStoreNames.contains(VIDEOS_STORE)) {
+                        db.createObjectStore(VIDEOS_STORE, { keyPath: "id" });
+                    }
+                    
+                    if (!db.objectStoreNames.contains(CODES_STORE)) {
+                        db.createObjectStore(CODES_STORE, { keyPath: "code" });
+                    }
+                    
+                    console.log("تم إنشاء مخازن البيانات الجديدة");
+                };
+            });
+        }
+
+        // حفظ البيانات في IndexedDB
+        async function saveDataToDB() {
+            showLoader();
+            try {
+                if (!db) {
+                    throw new Error("قاعدة البيانات غير مهيأة");
+                }
+
+                await new Promise((resolve, reject) => {
+                    const transaction = db.transaction(
+                        [STUDENTS_STORE, VIDEOS_STORE, CODES_STORE], 
+                        "readwrite"
+                    );
+
+                    // حفظ الطلاب
+                    const studentsStore = transaction.objectStore(STUDENTS_STORE);
+                    studentsStore.clear();
+                    studentsData.forEach(student => {
+                        studentsStore.add(student);
+                    });
+
+                    // حفظ الفيديوهات
+                    const videosStore = transaction.objectStore(VIDEOS_STORE);
+                    videosStore.clear();
+                    videosData.forEach(video => {
+                        videosStore.add(video);
+                    });
+
+                    // حفظ الأكواد
+                    const codesStore = transaction.objectStore(CODES_STORE);
+                    codesStore.clear();
+                    studentCodes.forEach(code => {
+                        codesStore.add({ code });
+                    });
+
+                    transaction.oncomplete = function() {
+                        console.log("تم حفظ جميع البيانات في IndexedDB");
+                        resolve();
+                    };
+
+                    transaction.onerror = function(event) {
+                        console.error("خطأ في حفظ البيانات:", event.target.error);
+                        reject(event.target.error);
+                    };
+                });
+            } catch (error) {
+                console.error("حدث خطأ أثناء حفظ البيانات:", error);
+                throw error;
+            } finally {
+                hideLoader();
+            }
+        }
+
+        // تحميل البيانات من IndexedDB
+        async function loadDataFromDB() {
+            showLoader();
+            try {
+                if (!db) {
+                    throw new Error("قاعدة البيانات غير مهيأة");
+                }
+
+                await new Promise((resolve, reject) => {
+                    const transaction = db.transaction(
+                        [STUDENTS_STORE, VIDEOS_STORE, CODES_STORE], 
+                        "readonly"
+                    );
+
+                    let loadedStudents = false;
+                    let loadedVideos = false;
+                    let loadedCodes = false;
+
+                    function checkAllLoaded() {
+                        if (loadedStudents && loadedVideos && loadedCodes) {
+                            resolve();
+                        }
+                    }
+
+                    // تحميل الطلاب
+                    const studentsStore = transaction.objectStore(STUDENTS_STORE);
+                    const studentsRequest = studentsStore.getAll();
+                    
+                    studentsRequest.onsuccess = function() {
+                        studentsData.length = 0;
+                        studentsRequest.result.forEach(student => {
+                            studentsData.push(student);
+                        });
+                        loadedStudents = true;
+                        checkAllLoaded();
+                    };
+
+                    studentsRequest.onerror = function(event) {
+                        console.error("خطأ في تحميل الطلاب:", event.target.error);
+                        reject(event.target.error);
+                    };
+
+                    // تحميل الفيديوهات
+                    const videosStore = transaction.objectStore(VIDEOS_STORE);
+                    const videosRequest = videosStore.getAll();
+                    
+                    videosRequest.onsuccess = function() {
+                        videosData.length = 0;
+                        videosRequest.result.forEach(video => {
+                            videosData.push(video);
+                        });
+                        loadedVideos = true;
+                        checkAllLoaded();
+                    };
+
+                    videosRequest.onerror = function(event) {
+                        console.error("خطأ في تحميل الفيديوهات:", event.target.error);
+                        reject(event.target.error);
+                    };
+
+                    // تحميل الأكواد
+                    const codesStore = transaction.objectStore(CODES_STORE);
+                    const codesRequest = codesStore.getAll();
+                    
+                    codesRequest.onsuccess = function() {
+                        studentCodes.length = 0;
+                        codesRequest.result.forEach(item => {
+                            studentCodes.push(item.code);
+                        });
+                        loadedCodes = true;
+                        checkAllLoaded();
+                    };
+
+                    codesRequest.onerror = function(event) {
+                        console.error("خطأ في تحميل الأكواد:", event.target.error);
+                        reject(event.target.error);
+                    };
+
+                    transaction.oncomplete = function() {
+                        console.log("تم تحميل جميع البيانات من IndexedDB");
+                    };
+
+                    transaction.onerror = function(event) {
+                        console.error("خطأ في تحميل البيانات:", event.target.error);
+                        reject(event.target.error);
+                    };
+                });
+            } catch (error) {
+                console.error("حدث خطأ أثناء تحميل البيانات:", error);
+                throw error;
+            } finally {
+                hideLoader();
+            }
+        }
+
+        // تهيئة التطبيق
+        async function initializeApp() {
+            showLoader();
+            try {
+                await initDB();
+                await loadDataFromDB();
+                renderUploadedVideos();
+                renderStudentVideos();
+                updateTotalVideos();
+                updateTotalStudents();
+                console.log("تم تهيئة التطبيق بنجاح");
+            } catch (error) {
+                console.error("خطأ في تهيئة التطبيق:", error);
+                alert("حدث خطأ أثناء تحميل البيانات. يرجى تحديث الصفحة.");
+            } finally {
+                hideLoader();
+            }
+        }
+
+        // استدعاء التهيئة عند تحميل الصفحة
+        document.addEventListener('DOMContentLoaded', initializeApp);
+
+        // حفظ البيانات عند إغلاق الصفحة
+        window.addEventListener('beforeunload', async function() {
+            await saveDataToDB();
         });
+
+        // حفظ البيانات عند تغيير الحساب
+        teacherLogout.addEventListener('click', async function() {
+            await saveDataToDB();
+            teacherDashboard.style.display = 'none';
+            mainScreen.style.display = 'flex';
+        });
+
+        studentLogout.addEventListener('click', async function() {
+            await saveDataToDB();
+            studentDashboard.style.display = 'none';
+            mainScreen.style.display = 'flex';
+        });
+
+        // نسخ كود الطالب
+        copyCodeBtn?.addEventListener('click', function() {
+            const code = studentCodeGenerated.textContent;
+            navigator.clipboard.writeText(code).then(() => {
+                alert('تم نسخ الكود بنجاح!');
+            }).catch(err => {
+                console.error('Failed to copy: ', err);
+                alert('حدث خطأ أثناء نسخ الكود');
+            });
+        });
+
+        // تبديل نوع المحتوى
+        function toggleContentType() {
+            const contentType = document.getElementById('content-type').value;
+            if (contentType === 'file') {
+                document.getElementById('file-upload-group').style.display = 'block';
+                document.getElementById('youtube-link-group').style.display = 'none';
+            } else {
+                document.getElementById('file-upload-group').style.display = 'none';
+                document.getElementById('youtube-link-group').style.display = 'block';
+            }
+        }
+
+        // تسجيل طالب جديد من قبل المدرس
+        registerNewStudentBtn.addEventListener('click', async function() {
+            const name = document.getElementById('new-student-name').value.trim();
+            const phone = document.getElementById('new-student-phone').value.trim();
+            const email = document.getElementById('new-student-email').value.trim();
+            const grade = document.getElementById('new-student-grade').value;
+            const subject = document.getElementById('new-student-subject').value;
+            
+            if(name && phone) {
+                // توليد كود فريد للطالب
+                const code = generateStudentCode();
+                
+                // حفظ بيانات الطالب
+                const student = {
+                    id: Date.now(),
+                    name,
+                    phone,
+                    email,
+                    grade,
+                    subject,
+                    code,
+                    date: new Date().toISOString().split('T')[0]
+                };
+                
+                studentsData.push(student);
+                studentCodes.push(code);
+                
+                try {
+                    await saveDataToDB();
+                    updateTotalStudents();
+                    
+                    // عرض الكود المولد
+                    studentCodeGenerated.textContent = code;
+                    generatedCodeDisplay.style.display = 'block';
+                    
+                    // مسح الحقول
+                    document.getElementById('new-student-name').value = '';
+                    document.getElementById('new-student-phone').value = '';
+                    document.getElementById('new-student-email').value = '';
+                    
+                    // إخفاء رسالة الكود بعد 10 ثواني
+                    setTimeout(() => {
+                        generatedCodeDisplay.style.display = 'none';
+                    }, 10000);
+                } catch (error) {
+                    console.error("خطأ في حفظ بيانات الطالب:", error);
+                    alert("حدث خطأ أثناء حفظ بيانات الطالب");
+                }
+            } else {
+                alert('الرجاء إدخال الاسم ورقم الهاتف على الأقل');
+            }
+        });
+
+        // رفع فيديو جديد
+        uploadVideoBtn.addEventListener('click', async function() {
+            const title = document.getElementById('video-title').value;
+            const description = document.getElementById('video-description').value;
+            const subject = document.getElementById('video-subject').value;
+            const level = document.getElementById('video-level').value;
+            const contentType = document.getElementById('content-type').value;
+            
+            if(title && description) {
+                const newVideo = {
+                    id: Date.now(),
+                    title,
+                    description,
+                    subject,
+                    level,
+                    date: new Date().toISOString().split('T')[0],
+                    views: 0,
+                    rating: 0,
+                    type: contentType
+                };
+                
+                if (contentType === 'file') {
+                    const fileInput = document.getElementById('video-file');
+                    if (fileInput.files.length > 0) {
+                        newVideo.fileName = fileInput.files[0].name;
+                        newVideo.fileSize = (fileInput.files[0].size / (1024 * 1024)).toFixed(2) + ' MB';
+                    } else {
+                        alert('الرجاء اختيار ملف الفيديو');
+                        return;
+                    }
+                } else {
+                    const youtubeLink = document.getElementById('youtube-link').value;
+                    if (youtubeLink) {
+                        newVideo.youtubeLink = youtubeLink;
+                    } else {
+                        alert('الرجاء إدخال رابط يوتيوب صحيح');
+                        return;
+                    }
+                }
+                
+                videosData.push(newVideo);
+                
+                try {
+                    await saveDataToDB();
+                    renderUploadedVideos();
+                    renderStudentVideos();
+                    updateTotalVideos();
+                    
+                    document.getElementById('video-title').value = '';
+                    document.getElementById('video-description').value = '';
+                    document.getElementById('video-file').value = '';
+                    document.getElementById('youtube-link').value = '';
+                    
+                    alert('تم رفع الدرس بنجاح!');
+                } catch (error) {
+                    console.error("خطأ في حفظ الفيديو:", error);
+                    alert("حدث خطأ أثناء حفظ الفيديو");
+                }
+            } else {
+                alert('الرجاء ملء جميع الحقول المطلوبة');
+            }
+        });
+
+        // حذف فيديو
+        async function deleteVideo(id) {
+            if (!confirm('هل أنت متأكد من حذف هذا الدرس؟')) return;
+            
+            const index = videosData.findIndex(video => video.id === id);
+            if (index !== -1) {
+                videosData.splice(index, 1);
+                try {
+                    await saveDataToDB();
+                    renderUploadedVideos();
+                    renderStudentVideos();
+                    updateTotalVideos();
+                    alert('تم حذف الدرس بنجاح');
+                } catch (error) {
+                    console.error("خطأ في حذف الفيديو:", error);
+                    alert("حدث خطأ أثناء حذف الفيديو");
+                }
+            }
+        }
+
+        // عرض إدارة الطلاب
+        viewStudentsBtn.addEventListener('click', function() {
+            renderStudentsTable();
+            studentManagementModal.style.display = 'flex';
+        });
+
+        // إغلاق نافذة إدارة الطلاب
+        closeManagementModal.addEventListener('click', function() {
+            studentManagementModal.style.display = 'none';
+        });
+
+        // طباعة قائمة الطلاب
+        printStudentsBtn.addEventListener('click', function() {
+            window.print();
+        });
+
+        // توليد كود طالب فريد
+        function generateStudentCode() {
+            const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ0123456789';
+            let code = 'STU2025-';
+            
+            do {
+                code = 'STU2025-';
+                for (let j = 0; j < 5; j++) {
+                    const randomIndex = Math.floor(Math.random() * chars.length);
+                    code += chars[randomIndex];
+                }
+            } while (studentCodes.includes(code));
+            
+            return code;
+        }
+
+        // عرض الفيديوهات المرفوعة للتدريسين
+        function renderUploadedVideos() {
+            if (!uploadedVideosContainer) return;
+            
+            uploadedVideosContainer.innerHTML = '';
+            
+            if (videosData.length === 0) {
+                uploadedVideosContainer.innerHTML = `
+                    <div class="empty-message">
+                        <p>لم تقم برفع أي دروس بعد. ابدأ برفع دروسك الأولى!</p>
+                    </div>
+                `;
+                return;
+            }
+            
+            videosData.forEach(video => {
+                const videoElement = document.createElement('div');
+                videoElement.className = 'video-item';
+                videoElement.innerHTML = `
+                    <div class="video-header">
+                        <div class="video-title">${video.title}</div>
+                        <div class="video-date">${video.date}</div>
+                    </div>
+                    <div class="video-description">${video.description}</div>
+                    <div class="video-meta">
+                        <span>${video.subject} - ${video.level}</span>
+                        <span>${video.views} مشاهدة</span>
+                    </div>
+                    <div class="video-actions">
+                        <button class="action-btn edit-btn" onclick="editVideo(${video.id})">
+                            <i class="fas fa-edit"></i> تعديل
+                        </button>
+                        <button class="action-btn delete-btn" onclick="deleteVideo(${video.id})">
+                            <i class="fas fa-trash"></i> حذف
+                        </button>
+                    </div>
+                `;
+                uploadedVideosContainer.appendChild(videoElement);
+            });
+        }
+
+        // عرض الفيديوهات للطالب
+        function renderStudentVideos() {
+            if (!studentVideoList) return;
+            
+            studentVideoList.innerHTML = '';
+            
+            if (videosData.length === 0) {
+                studentVideoList.innerHTML = `
+                    <div class="empty-message">
+                        <p>لا توجد دروس متاحة حالياً. الرجاء العودة لاحقاً.</p>
+                    </div>
+                `;
+                return;
+            }
+            
+            videosData.forEach(video => {
+                const videoCard = document.createElement('div');
+                videoCard.className = 'student-video-card';
+                
+                let thumbnailContent = '<i class="fas fa-play-circle"></i>';
+                if (video.type === 'youtube') {
+                    thumbnailContent = '<i class="fab fa-youtube" style="color: #FF0000;"></i>';
+                } else if (video.type === 'file') {
+                    thumbnailContent = '<i class="fas fa-file-video"></i>';
+                }
+                
+                videoCard.innerHTML = `
+                    <div class="video-thumbnail">
+                        ${thumbnailContent}
+                    </div>
+                    <div class="video-info">
+                        <h3>${video.title}</h3>
+                        <p>${video.description.substring(0, 80)}...</p>
+                        <div class="video-meta">
+                            <span>${video.subject}</span>
+                            <span>${video.level}</span>
+                        </div>
+                        <button class="play-btn" onclick="watchVideo(${video.id})">
+                            <i class="fas fa-play"></i> مشاهدة الدرس
+                        </button>
+                    </div>
+                `;
+                studentVideoList.appendChild(videoCard);
+            });
+        }
+
+        // تحديث عدد الفيديوهات والطلاب
+        function updateTotalVideos() {
+            if (totalVideosSpan) {
+                totalVideosSpan.textContent = videosData.length;
+            }
+        }
+
+        function updateTotalStudents() {
+            if (totalStudentsSpan) {
+                totalStudentsSpan.textContent = studentsData.length;
+            }
+        }
+
+        // مشاهدة فيديو
+        async function watchVideo(id) {
+            const video = videosData.find(v => v.id === id);
+            if (video) {
+                if (video.type === 'youtube') {
+                    // افتح رابط اليوتيوب في نافذة جديدة
+                    window.open(video.youtubeLink, '_blank');
+                } else {
+                    // عرض رسالة للملفات المحملة
+                    alert(`جاري تحميل الملف: ${video.fileName}\n\nحجم الملف: ${video.fileSize}`);
+                }
+                video.views++;
+                try {
+                    await saveDataToDB();
+                    renderUploadedVideos();
+                } catch (error) {
+                    console.error("خطأ في تحديث عدد المشاهدات:", error);
+                }
+            }
+        }
+
+        // تعديل فيديو
+        function editVideo(id) {
+            const video = videosData.find(v => v.id === id);
+            if (video) {
+                document.getElementById('video-title').value = video.title;
+                document.getElementById('video-description').value = video.description;
+                document.getElementById('video-subject').value = video.subject;
+                document.getElementById('video-level').value = video.level;
+                document.getElementById('content-type').value = video.type;
+                
+                if (video.type === 'youtube') {
+                    document.getElementById('youtube-link').value = video.youtubeLink || '';
+                    toggleContentType();
+                } else {
+                    toggleContentType();
+                }
+                
+                // حذف الفيديو القديم
+                deleteVideo(id);
+                
+                alert('يمكنك الآن تعديل بيانات الدرس');
+            }
+        }
+
+        // عرض جدول الطلاب
+        function renderStudentsTable() {
+            if (!studentsTableBody) return;
+            
+            studentsTableBody.innerHTML = '';
+            studentsCount.textContent = studentsData.length;
+            
+            if (studentsData.length === 0) {
+                studentsTableBody.innerHTML = `
+                    <tr>
+                        <td colspan="7" style="text-align: center; padding: 20px;">
+                            لا يوجد طلاب مسجلين بعد
+                        </td>
+                    </tr>
+                `;
+                return;
+            }
+            
+            studentsData.forEach((student, index) => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${index + 1}</td>
+                    <td>${student.name}</td>
+                    <td><strong>${student.code}</strong></td>
+                    <td>${student.grade}</td>
+                    <td>${student.subject}</td>
+                    <td>${student.date}</td>
+                    <td>${student.phone || 'غير متوفر'}</td>
+                `;
+                studentsTableBody.appendChild(row);
+            });
+        }
+
+        // فتح نافذة تسجيل الدخول للتدريسين
+        teacherLoginBtn.addEventListener('click', function(e) {
+            e.preventDefault();
+            teacherLoginSection.style.display = 'flex';
+            loginError.style.display = 'none';
+            document.getElementById('username').value = '';
+            document.getElementById('password').value = '';
+        });
+
+        // إغلاق نافذة تسجيل الدخول للتدريسين
+        closeLoginBtn.addEventListener('click', function() {
+            teacherLoginSection.style.display = 'none';
+        });
+
+        // تسجيل الدخول للتدريسين
+        teacherLoginSubmit.addEventListener('click', function() {
+            const username = document.getElementById('username').value;
+            const password = document.getElementById('password').value;
+            
+            if(username === teacherCredentials.username && password === teacherCredentials.password) {
+                teacherLoginSection.style.display = 'none';
+                mainScreen.style.display = 'none';
+                teacherDashboard.style.display = 'block';
+                loginError.style.display = 'none';
+            } else {
+                loginError.style.display = 'block';
+            }
+        });
+
+        // فتح نافذة تسجيل الدخول للطلاب
+        studentLoginBtn.addEventListener('click', function(e) {
+            e.preventDefault();
+            studentLoginSection.style.display = 'flex';
+            studentLoginError.style.display = 'none';
+            studentCodeInput.value = '';
+        });
+
+        // إغلاق نافذة تسجيل الدخول للطلاب
+        closeStudentLoginBtn.addEventListener('click', function() {
+            studentLoginSection.style.display = 'none';
+        });
+
+        // تسجيل الدخول للطلاب
+        studentLoginSubmit.addEventListener('click', function() {
+            const enteredCode = studentCodeInput.value.trim();
+            
+            if(studentCodes.includes(enteredCode)) {
+                studentLoginSection.style.display = 'none';
+                mainScreen.style.display = 'none';
+                studentDashboard.style.display = 'block';
+                studentLoginError.style.display = 'none';
+            } else {
+                studentLoginError.style.display = 'block';
+            }
+        });
+
+        // جعل الدوال متاحة عالمياً لاستخدامها في الأحداث
+        window.toggleContentType = toggleContentType;
+        window.watchVideo = watchVideo;
+        window.deleteVideo = deleteVideo;
+        window.editVideo = editVideo;
+    </script>
+</body>
+</html>
+
 
         // تسجيل الدخول للطلاب
         studentLoginSubmit.addEventListener('click', function() {
