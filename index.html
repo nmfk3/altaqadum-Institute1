@@ -20,6 +20,316 @@
             --error: #e74c3c;
             --whatsapp: #25D366;
             --telegram: #0088cc;
+
+            /* Dark Mode Variables */
+            --dark-bg: #1a1a2e;
+            --dark-card-bg: #22223b;
+            --dark-text: #e0e0e0;
+            --dark-light-gray: #33334d;
+            --dark-gray: #4a4a6b;
+            --dark-input-bg: #2e2e4a;
+        }
+        
+        /* Dark Mode */
+        body.dark-mode {
+            background: linear-gradient(135deg, var(--dark-bg) 0%, #16162a 100%);
+            color: var(--dark-text);
+        }
+
+        body.dark-mode .navbar {
+            background-color: var(--dark-card-bg);
+            box-shadow: 0 2px 10px rgba(0,0,0,0.3);
+        }
+
+        body.dark-mode .logo h1 {
+            color: var(--primary-light);
+        }
+
+        body.dark-mode .institute-address {
+            color: #b0b0b0;
+        }
+
+        body.dark-mode .welcome-message h1 {
+            color: var(--primary-light);
+        }
+
+        body.dark-mode .welcome-message p {
+            color: #b0b0b0;
+        }
+
+        body.dark-mode .system-card {
+            background-color: var(--dark-card-bg);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+            border-top-color: var(--primary-light) !important;
+        }
+
+        body.dark-mode .system-card:hover {
+            box-shadow: 0 15px 40px rgba(0,0,0,0.4);
+        }
+
+        body.dark-mode .system-icon {
+            background-color: rgba(255, 158, 88, 0.1);
+            color: var(--primary-light);
+            border-color: var(--primary-light);
+        }
+
+        body.dark-mode .system-card h2 {
+            color: var(--primary-light);
+        }
+
+        body.dark-mode .system-card p {
+            color: #b0b0b0;
+        }
+
+        body.dark-mode .system-card .btn {
+            background-color: var(--primary-light);
+            border-color: var(--primary-light);
+        }
+
+        body.dark-mode .system-card .btn:hover {
+            background-color: var(--primary);
+            border-color: var(--primary);
+        }
+
+        body.dark-mode .system-card .btn.secondary {
+            background-color: var(--dark-input-bg);
+            color: var(--primary-light);
+        }
+
+        body.dark-mode .system-card .btn.secondary:hover {
+            background-color: var(--dark-gray);
+        }
+
+        body.dark-mode .lock-icon {
+            color: var(--primary-light);
+        }
+
+        body.dark-mode .contact-card {
+            background-color: var(--dark-card-bg);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+            border-top-color: var(--primary-light);
+        }
+
+        body.dark-mode .contact-card h2 {
+            color: var(--primary-light);
+        }
+
+        body.dark-mode .contact-card p {
+            color: #b0b0b0;
+        }
+
+        body.dark-mode .login-container,
+        body.dark-mode .student-login-container,
+        body.dark-mode .student-codes-container,
+        body.dark-mode .loader-content {
+            background-color: var(--dark-card-bg);
+            box-shadow: 0 15px 50px rgba(0,0,0,0.5);
+        }
+
+        body.dark-mode .login-header h2,
+        body.dark-mode .modal-header h2 {
+            color: var(--primary-light);
+        }
+
+        body.dark-mode .login-header p {
+            color: #b0b0b0;
+        }
+
+        body.dark-mode .close-btn,
+        body.dark-mode .close-modal-btn {
+            color: #b0b0b0;
+        }
+
+        body.dark-mode .close-btn:hover,
+        body.dark-mode .close-modal-btn:hover {
+            color: var(--primary-light);
+        }
+
+        body.dark-mode .form-group label {
+            color: var(--dark-text);
+        }
+
+        body.dark-mode .form-group input,
+        body.dark-mode .form-group select,
+        body.dark-mode .form-group textarea {
+            background-color: var(--dark-input-bg);
+            border-color: var(--dark-gray);
+            color: var(--dark-text);
+        }
+
+        body.dark-mode .form-group input:focus,
+        body.dark-mode .form-group select:focus,
+        body.dark-mode .form-group textarea:focus {
+            border-color: var(--primary-light);
+        }
+
+        body.dark-mode .login-btn,
+        body.dark-mode .logout-btn,
+        body.dark-mode .save-btn,
+        body.dark-mode .register-student-btn,
+        body.dark-mode .play-btn {
+            background-color: var(--primary-light);
+        }
+
+        body.dark-mode .login-btn:hover,
+        body.dark-mode .logout-btn:hover,
+        body.dark-mode .save-btn:hover,
+        body.dark-mode .register-student-btn:hover,
+        body.dark-mode .play-btn:hover {
+            background-color: var(--primary);
+        }
+
+        body.dark-mode .dashboard-header {
+            border-bottom-color: var(--dark-light-gray);
+        }
+
+        body.dark-mode .dashboard-title h1 {
+            color: var(--primary-light);
+        }
+
+        body.dark-mode .dashboard-title .icon {
+            background-color: rgba(255, 158, 88, 0.1);
+            color: var(--primary-light);
+        }
+
+        body.dark-mode .dashboard-card {
+            background-color: var(--dark-card-bg);
+            box-shadow: 0 8px 20px rgba(0,0,0,0.2);
+        }
+
+        body.dark-mode .card-header {
+            border-bottom-color: var(--dark-light-gray);
+        }
+
+        body.dark-mode .card-header .icon {
+            background-color: rgba(255, 158, 88, 0.1);
+            color: var(--primary-light);
+        }
+
+        body.dark-mode .card-header h3 {
+            color: var(--dark-text);
+        }
+
+        body.dark-mode .video-item {
+            background-color: var(--dark-input-bg);
+        }
+
+        body.dark-mode .video-title {
+            color: var(--primary-light);
+        }
+
+        body.dark-mode .video-date,
+        body.dark-mode .video-description,
+        body.dark-mode .video-meta {
+            color: #b0b0b0;
+        }
+
+        body.dark-mode .action-btn {
+            color: white; /* Ensure text is white on colored buttons */
+        }
+
+        body.dark-mode .student-welcome {
+            background: linear-gradient(135deg, rgba(255,158,88,0.1) 0%, rgba(255,107,0,0.1) 100%);
+        }
+
+        body.dark-mode .student-welcome h2 {
+            color: var(--primary-light);
+        }
+
+        body.dark-mode .student-welcome p {
+            color: #b0b0b0;
+        }
+
+        body.dark-mode .student-video-card {
+            background-color: var(--dark-card-bg);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+        }
+
+        body.dark-mode .video-thumbnail {
+            background: linear-gradient(45deg, var(--primary), var(--primary-light));
+        }
+
+        body.dark-mode .video-info h3 {
+            color: var(--primary-light);
+        }
+
+        body.dark-mode .video-info p {
+            color: #b0b0b0;
+        }
+
+        body.dark-mode .students-table th {
+            background-color: rgba(255, 158, 88, 0.1);
+            color: var(--primary-light);
+        }
+
+        body.dark-mode .students-table td {
+            border-bottom-color: var(--dark-gray);
+            color: var(--dark-text);
+        }
+
+        body.dark-mode .students-table tr:hover {
+            background-color: rgba(255, 158, 88, 0.05);
+        }
+
+        body.dark-mode .code-display {
+            background-color: var(--dark-input-bg);
+            border-color: var(--dark-gray);
+            color: var(--primary-light);
+        }
+
+        body.dark-mode .code-display p {
+            color: var(--dark-text);
+        }
+
+        body.dark-mode .code-display strong {
+            color: var(--primary-light);
+        }
+
+        body.dark-mode footer {
+            background-color: var(--dark-light-gray);
+            color: #b0b0b0;
+        }
+
+        body.dark-mode .spinner {
+            border-top-color: var(--primary-light);
+        }
+
+        body.dark-mode .multi-select-dropdown {
+            background-color: var(--dark-input-bg);
+            border-color: var(--dark-gray);
+            color: var(--dark-text);
+        }
+
+        body.dark-mode .multi-select-dropdown:hover {
+            border-color: var(--primary-light);
+        }
+
+        body.dark-mode .multi-select-dropdown:focus {
+            border-color: var(--primary-light);
+        }
+
+        body.dark-mode .multi-select-options {
+            background-color: var(--dark-card-bg);
+            border-color: var(--dark-gray);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+        }
+
+        body.dark-mode .multi-select-option {
+            color: var(--dark-text);
+        }
+
+        body.dark-mode .multi-select-option:hover {
+            background-color: var(--dark-light-gray);
+        }
+
+        body.dark-mode .multi-select-option.selected {
+            background-color: rgba(255, 158, 88, 0.1);
+            color: var(--primary-light);
+        }
+
+        body.dark-mode .selected-subject {
+            background-color: var(--primary-dark);
+            color: white;
         }
         
         * {
@@ -1140,6 +1450,29 @@
         .student-grade-section .dashboard-card {
             margin-bottom: 30px; /* Spacing between grade sections */
         }
+
+        /* Dark Mode Toggle Button */
+        .dark-mode-toggle {
+            background: none;
+            border: none;
+            font-size: 1.5rem;
+            color: var(--text);
+            cursor: pointer;
+            margin-right: 15px; /* Adjust as needed */
+            transition: color 0.3s;
+        }
+
+        .dark-mode-toggle:hover {
+            color: var(--primary);
+        }
+        
+        body.dark-mode .dark-mode-toggle {
+            color: var(--dark-text);
+        }
+
+        body.dark-mode .dark-mode-toggle:hover {
+            color: var(--primary-light);
+        }
     </style>
 </head>
 <body>
@@ -1152,6 +1485,9 @@
                     <div class="institute-address">كركوك - حي الواسطي - سايدين العمارة الخضراء</div>
                 </div>
             </div>
+            <button id="dark-mode-toggle" class="dark-mode-toggle">
+                <i class="fas fa-moon"></i>
+            </button>
         </div>
     </nav>
     
@@ -1639,6 +1975,7 @@
         const subjectsDropdown = document.getElementById('subjects-dropdown');
         const subjectsOptions = document.getElementById('subjects-options');
         const selectedSubjectsContainer = document.getElementById('selected-subjects');
+        const darkModeToggle = document.getElementById('dark-mode-toggle');
         
         // بيانات تسجيل الدخول للتدريسين
         const teacherCredentials = {
@@ -1980,50 +2317,28 @@
                     updateSelectedSubjectsDisplay();
                 });
             });
-        });
 
-        // تحديث عرض المواد المختارة
-        function updateSelectedSubjectsDisplay() {
-            if (selectedSubjects.length === 0) {
-                subjectsDropdown.textContent = 'اختر المواد الدراسية';
-            } else if (selectedSubjects.includes('جميع المواد')) {
-                subjectsDropdown.textContent = 'جميع المواد';
-            } else {
-                subjectsDropdown.textContent = `${selectedSubjects.length} مادة مختارة`;
-            }
-            
-            selectedSubjectsContainer.innerHTML = '';
-            
-            selectedSubjects.forEach(subject => {
-                const subjectElement = document.createElement('div');
-                subjectElement.className = 'selected-subject';
-                subjectElement.innerHTML = `
-                    ${subject}
-                    <i class="fas fa-times" data-value="${subject}"></i>
-                `;
-                selectedSubjectsContainer.appendChild(subjectElement);
-                
-                subjectElement.querySelector('i').addEventListener('click', function(e) {
-                    e.stopPropagation();
-                    const value = this.getAttribute('data-value');
-                    const index = selectedSubjects.indexOf(value);
-                    if (index !== -1) {
-                        selectedSubjects.splice(index, 1);
-                        updateSelectedSubjectsDisplay();
-                    }
-                });
-            });
-            
-            const options = subjectsOptions.querySelectorAll('.multi-select-option');
-            options.forEach(option => {
-                const value = option.getAttribute('data-value');
-                if (selectedSubjects.includes(value) || (selectedSubjects.includes('جميع المواد') && value !== 'جميع المواد')) {
-                    option.classList.add('selected');
+            // Dark Mode Toggle
+            darkModeToggle.addEventListener('click', () => {
+                document.body.classList.toggle('dark-mode');
+                const isDarkMode = document.body.classList.contains('dark-mode');
+                localStorage.setItem('darkMode', isDarkMode);
+                if (isDarkMode) {
+                    darkModeToggle.innerHTML = '<i class="fas fa-sun"></i>';
                 } else {
-                    option.classList.remove('selected');
+                    darkModeToggle.innerHTML = '<i class="fas fa-moon"></i>';
                 }
             });
-        }
+
+            // Apply saved dark mode preference
+            const savedDarkMode = localStorage.getItem('darkMode');
+            if (savedDarkMode === 'true') {
+                document.body.classList.add('dark-mode');
+                darkModeToggle.innerHTML = '<i class="fas fa-sun"></i>';
+            } else {
+                darkModeToggle.innerHTML = '<i class="fas fa-moon"></i>';
+            }
+        });
 
         // حفظ البيانات عند إغلاق الصفحة
         window.addEventListener('beforeunload', async function(event) {
