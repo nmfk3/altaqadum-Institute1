@@ -146,7 +146,7 @@
         }
         
         .system-card.student-system,
-        .system-card.free-lectures { /* تطبيق نفس الألوان على بطاقة المحاضرات المجانية */
+        .system-card.free-lectures {
             border-top: 6px solid var(--primary);
         }
         
@@ -560,7 +560,7 @@
         }
         
         .register-student-btn {
-            background-color: var(--primary); /* changed from success */
+            background-color: var(--primary);
             color: white;
             border: none;
             border-radius: 12px;
@@ -578,7 +578,7 @@
         }
         
         .register-student-btn:hover {
-            background-color: var(--primary-dark); /* changed from success-dark */
+            background-color: var(--primary-dark);
         }
         
         .video-item {
@@ -874,7 +874,7 @@
         
         .code-display strong {
             font-size: 1.4rem;
-            color: var(--primary); /* changed from success */
+            color: var(--primary);
         }
         
         /* نظام المحاضرات المجانية */
@@ -884,24 +884,24 @@
         }
         
         .free-lectures-section .dashboard-header {
-            border-bottom: 2px solid var(--light-gray); /* changed from success */
+            border-bottom: 2px solid var(--light-gray);
         }
         
         .free-lectures-section .dashboard-title h1 {
-            color: var(--primary); /* changed from success */
+            color: var(--primary);
         }
         
         .free-lectures-section .dashboard-title .icon {
-            background-color: rgba(255, 107, 0, 0.1); /* changed from success */
-            color: var(--primary); /* changed from success */
+            background-color: rgba(255, 107, 0, 0.1);
+            color: var(--primary);
         }
         
         .free-lectures-section .logout-btn {
-            background-color: var(--primary); /* changed from success */
+            background-color: var(--primary);
         }
         
         .free-lectures-section .logout-btn:hover {
-            background-color: var(--primary-dark); /* changed from success-dark */
+            background-color: var(--primary-dark);
         }
         
         /* التجاوب مع الشاشات الصغيرة */
@@ -1038,6 +1038,83 @@
         @keyframes spin {
             0% { transform: rotate(0deg); }
             100% { transform: rotate(360deg); }
+        }
+
+        /* أنماط جديدة للاختيار المتعدد */
+        .multi-select-container {
+            position: relative;
+            width: 100%;
+        }
+        
+        .multi-select-dropdown {
+            border: 2px solid var(--gray);
+            border-radius: 12px;
+            padding: 10px;
+            cursor: pointer;
+            background-color: white;
+            margin-bottom: 15px;
+        }
+        
+        .multi-select-dropdown:hover {
+            border-color: var(--primary-light);
+        }
+        
+        .multi-select-dropdown:focus {
+            outline: none;
+            border-color: var(--primary);
+        }
+        
+        .multi-select-options {
+            display: none;
+            position: absolute;
+            background-color: white;
+            border: 2px solid var(--gray);
+            border-radius: 12px;
+            width: 100%;
+            max-height: 200px;
+            overflow-y: auto;
+            z-index: 100;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+        
+        .multi-select-options.show {
+            display: block;
+        }
+        
+        .multi-select-option {
+            padding: 10px 15px;
+            cursor: pointer;
+        }
+        
+        .multi-select-option:hover {
+            background-color: var(--light-gray);
+        }
+        
+        .multi-select-option.selected {
+            background-color: rgba(255, 107, 0, 0.1);
+            color: var(--primary);
+        }
+        
+        .selected-subjects {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 5px;
+            margin-top: 5px;
+        }
+        
+        .selected-subject {
+            background-color: var(--primary-light);
+            color: white;
+            padding: 5px 10px;
+            border-radius: 15px;
+            font-size: 0.8rem;
+            display: flex;
+            align-items: center;
+        }
+        
+        .selected-subject i {
+            margin-right: 5px;
+            cursor: pointer;
         }
     </style>
 </head>
@@ -1194,17 +1271,24 @@
                                     </select>
                                 </div>
                                 <div class="form-group">
-                                    <label for="new-student-subject">المادة الرئيسية</label>
-                                    <select id="new-student-subject" class="form-control">
-                                        <option value="إسلامية">إسلامية</option>
-                                        <option value="فيزياء">الفيزياء</option>
-                                        <option value="كيمياء">الكيمياء</option>
-                                        <option value="لغة عربية">اللغة العربية</option>
-                                        <option value="لغة إنجليزية">اللغة الإنجليزية</option>
-                                        <option value="العلوم">العلوم</option>
-                                        <option value="رياضيات">الرياضيات</option>
-                                        <option value="الاحياء">الاحياء</option>
-                                    </select>
+                                    <label>المواد الدراسية</label>
+                                    <div class="multi-select-container">
+                                        <div class="multi-select-dropdown" id="subjects-dropdown">
+                                            اختر المواد الدراسية
+                                        </div>
+                                        <div class="multi-select-options" id="subjects-options">
+                                            <div class="multi-select-option" data-value="إسلامية">إسلامية</div>
+                                            <div class="multi-select-option" data-value="فيزياء">الفيزياء</div>
+                                            <div class="multi-select-option" data-value="كيمياء">الكيمياء</div>
+                                            <div class="multi-select-option" data-value="لغة عربية">اللغة العربية</div>
+                                            <div class="multi-select-option" data-value="لغة إنجليزية">اللغة الإنجليزية</div>
+                                            <div class="multi-select-option" data-value="العلوم">العلوم</div>
+                                            <div class="multi-select-option" data-value="رياضيات">الرياضيات</div>
+                                            <div class="multi-select-option" data-value="الاحياء">الاحياء</div>
+                                            <div class="multi-select-option" data-value="جميع المواد">جميع المواد</div>
+                                        </div>
+                                        <div class="selected-subjects" id="selected-subjects"></div>
+                                    </div>
                                 </div>
                             </div>
                             
@@ -1557,10 +1641,11 @@
                         <th>الاسم الكامل</th>
                         <th>الكود الخاص</th>
                         <th>الصف الدراسي</th>
-                        <th>المادة الرئيسية</th>
+                        <th>المواد الدراسية</th>
                         <th>تاريخ التسجيل</th>
                         <th>الهاتف</th>
-                        <th>الإجراءات</th> </tr>
+                        <th>الإجراءات</th>
+                    </tr>
                 </thead>
                 <tbody id="students-table-body">
                     </tbody>
@@ -1575,10 +1660,11 @@
 
     <script>
         // بيانات التطبيق
-        const studentCodes = []; // قائمة بالكودات فقط، سيتم استخدامها للتحقق السريع
-        const studentsData = []; // بيانات الطلاب مع الكودات ومعرفات الأجهزة
+        const studentCodes = [];
+        const studentsData = [];
         const videosData = [];
         const freeVideosData = [];
+        let selectedSubjects = [];
         
         // عناصر DOM
         const mainScreen = document.getElementById('main-screen');
@@ -1618,6 +1704,9 @@
         const freeLecturesSection = document.getElementById('free-lectures-section');
         const freeLecturesBack = document.getElementById('free-lectures-back');
         const registerFromFree = document.getElementById('register-from-free');
+        const subjectsDropdown = document.getElementById('subjects-dropdown');
+        const subjectsOptions = document.getElementById('subjects-options');
+        const selectedSubjectsContainer = document.getElementById('selected-subjects');
         
         // بيانات تسجيل الدخول للتدريسين
         const teacherCredentials = {
@@ -1625,10 +1714,10 @@
             password: "T1234@2025"
         };
 
-        // تعريف قاعدة البيانات IndexedDB مع حجم تخزين أكبر
+        // تعريف قاعدة البيانات IndexedDB
         let db;
         const DB_NAME = "InstituteDB";
-        const DB_VERSION = 5; // زيادة رقم الإصدار لتطبيق التغييرات الجديدة في store
+        const DB_VERSION = 6; // زيادة رقم الإصدار لتطبيق التغييرات الجديدة
         const STUDENTS_STORE = "students";
         const VIDEOS_STORE = "videos";
         const FREE_VIDEOS_STORE = "free_videos";
@@ -1644,7 +1733,7 @@
             loader.style.display = 'none';
         }
 
-        // تهيئة قاعدة البيانات مع حجم تخزين أكبر
+        // تهيئة قاعدة البيانات
         function initDB() {
             return new Promise((resolve, reject) => {
                 const request = indexedDB.open(DB_NAME, DB_VERSION);
@@ -1684,7 +1773,7 @@
                             resolve(db);
                         }).catch(error => {
                             console.error("خطأ في تخصيص المساحة:", error);
-                            resolve(db); // المتابعة حتى لو فشل طلب المساحة
+                            resolve(db);
                         });
                     } else {
                         resolve(db);
@@ -1694,7 +1783,7 @@
                 request.onupgradeneeded = function(event) {
                     const db = event.target.result;
                     
-                    // حذف المخازن القديمة إذا كانت موجودة (خاصة عند تغيير الـ keyPath أو إضافة فهرس)
+                    // حذف المخازن القديمة إذا كانت موجودة
                     if (db.objectStoreNames.contains(STUDENTS_STORE)) {
                         db.deleteObjectStore(STUDENTS_STORE);
                     }
@@ -1706,11 +1795,10 @@
                     }
                     
                     // إنشاء مخازن جديدة مع مفاتيح مناسبة
-                    // إضافة deviceId إلى مخزن الطلاب
-                    const studentsStore = db.createObjectStore(STUDENTS_STORE, { keyPath: "code" }); // الكود هو المفتاح الرئيسي
-                    studentsStore.createIndex("by_id", "id", { unique: true }); // فهرس للايدي للتعديل والحذف
+                    const studentsStore = db.createObjectStore(STUDENTS_STORE, { keyPath: "code" });
+                    studentsStore.createIndex("by_id", "id", { unique: true });
                     studentsStore.createIndex("by_name", "name");
-                    studentsStore.createIndex("by_device", "deviceId", { unique: false }); // يمكن أن يكون جهاز الطالب فارغًا في البداية
+                    studentsStore.createIndex("by_device", "deviceId", { unique: false });
 
                     const videosStore = db.createObjectStore(VIDEOS_STORE, { keyPath: "id" });
                     videosStore.createIndex("by_subject", "subject");
@@ -1725,7 +1813,7 @@
             });
         }
 
-        // حفظ البيانات في IndexedDB مع معالجة الأخطاء المحسنة
+        // حفظ البيانات في IndexedDB
         async function saveDataToDB() {
             showLoader();
             try {
@@ -1733,13 +1821,11 @@
                     throw new Error("قاعدة البيانات غير مهيأة");
                 }
 
-                // استخدام transaction واحدة لجميع العمليات
                 const transaction = db.transaction(
                     [STUDENTS_STORE, VIDEOS_STORE, FREE_VIDEOS_STORE], 
                     "readwrite"
                 );
 
-                // معالجة الأخطاء في transaction
                 transaction.onerror = function(event) {
                     console.error("خطأ في transaction:", event.target.error);
                     throw event.target.error;
@@ -1747,7 +1833,7 @@
 
                 // حفظ الطلاب
                 const studentsStore = transaction.objectStore(STUDENTS_STORE);
-                await clearStore(studentsStore); // مسح جميع الطلاب ثم إضافتهم مرة أخرى
+                await clearStore(studentsStore);
                 await Promise.all(studentsData.map(student => {
                     return new Promise((resolve, reject) => {
                         const request = studentsStore.put(student);
@@ -1778,7 +1864,6 @@
                     });
                 }));
                 
-                // الانتظار حتى اكتمال transaction
                 await new Promise((resolve, reject) => {
                     transaction.oncomplete = resolve;
                     transaction.onerror = reject;
@@ -1803,7 +1888,7 @@
             });
         }
 
-        // تحميل البيانات من IndexedDB مع معالجة محسنة
+        // تحميل البيانات من IndexedDB
         async function loadDataFromDB() {
             showLoader();
             try {
@@ -1811,13 +1896,11 @@
                     throw new Error("قاعدة البيانات غير مهيأة");
                 }
 
-                // استخدام transaction واحدة لجميع عمليات القراءة
                 const transaction = db.transaction(
                     [STUDENTS_STORE, VIDEOS_STORE, FREE_VIDEOS_STORE], 
                     "readonly"
                 );
 
-                // معالجة الأخطاء في transaction
                 transaction.onerror = function(event) {
                     console.error("خطأ في transaction:", event.target.error);
                     throw event.target.error;
@@ -1832,7 +1915,6 @@
                 });
                 studentsData.length = 0;
                 studentsData.push(...students);
-                // تحديث studentCodes بناءً على الطلاب المحملين
                 studentCodes.length = 0;
                 studentCodes.push(...students.map(s => s.code));
 
@@ -1861,7 +1943,6 @@
             } catch (error) {
                 console.error("حدث خطأ أثناء تحميل البيانات:", error);
                 
-                // إذا فشل التحميل، نبدأ ببيانات جديدة
                 studentsData.length = 0;
                 videosData.length = 0;
                 freeVideosData.length = 0;
@@ -1874,27 +1955,24 @@
         }
 
         // الحصول على معرف فريد للجهاز
-        // هذا مجرد مثال بسيط، في بيئة إنتاج حقيقية ستحتاج إلى حل أكثر قوة
         async function getDeviceId() {
             let deviceId = localStorage.getItem('deviceId');
             if (!deviceId) {
-                deviceId = crypto.randomUUID(); // توليد UUID فريد
+                deviceId = crypto.randomUUID();
                 localStorage.setItem('deviceId', deviceId);
             }
             return deviceId;
         }
 
-        // تهيئة التطبيق مع تحسينات لضمان استمرارية البيانات
+        // تهيئة التطبيق
         async function initializeApp() {
             showLoader();
             try {
-                // طلب إذن التخزين الدائم
                 if (navigator.storage && navigator.storage.persist) {
                     const persisted = await navigator.storage.persist();
                     console.log("التخزين الدائم:", persisted ? "مسموح" : "غير مسموح");
                 }
                 
-                // طلب مساحة تخزين إضافية إذا لزم الأمر
                 if (navigator.storage && navigator.storage.estimate) {
                     const estimation = await navigator.storage.estimate();
                     console.log("مساحة التخزين المستخدمة:", estimation.usage, "من", estimation.quota);
@@ -1912,7 +1990,6 @@
             } catch (error) {
                 console.error("خطأ في تهيئة التطبيق:", error);
                 
-                // عرض رسالة للمستخدم مع خيار إعادة المحاولة
                 if (confirm("حدث خطأ في تحميل البيانات. هل تريد إعادة المحاولة؟")) {
                     await initializeApp();
                 } else {
@@ -1924,13 +2001,101 @@
         }
 
         // استدعاء التهيئة عند تحميل الصفحة
-        document.addEventListener('DOMContentLoaded', initializeApp);
+        document.addEventListener('DOMContentLoaded', function() {
+            initializeApp();
+            
+            // تهيئة اختيار المواد المتعدد
+            subjectsDropdown.addEventListener('click', function(e) {
+                e.stopPropagation();
+                subjectsOptions.classList.toggle('show');
+            });
+            
+            document.addEventListener('click', function() {
+                subjectsOptions.classList.remove('show');
+            });
+            
+            subjectsOptions.addEventListener('click', function(e) {
+                e.stopPropagation();
+            });
+            
+            const options = subjectsOptions.querySelectorAll('.multi-select-option');
+            options.forEach(option => {
+                option.addEventListener('click', function() {
+                    const value = this.getAttribute('data-value');
+                    
+                    if (value === 'جميع المواد') {
+                        if (selectedSubjects.includes('جميع المواد')) {
+                            selectedSubjects = [];
+                        } else {
+                            selectedSubjects = [
+                                'إسلامية', 'فيزياء', 'كيمياء', 'لغة عربية', 
+                                'لغة إنجليزية', 'العلوم', 'رياضيات', 'الاحياء'
+                            ];
+                        }
+                    } else {
+                        const index = selectedSubjects.indexOf(value);
+                        if (index === -1) {
+                            selectedSubjects.push(value);
+                        } else {
+                            selectedSubjects.splice(index, 1);
+                        }
+                        
+                        const allIndex = selectedSubjects.indexOf('جميع المواد');
+                        if (allIndex !== -1) {
+                            selectedSubjects.splice(allIndex, 1);
+                        }
+                    }
+                    
+                    updateSelectedSubjectsDisplay();
+                });
+            });
+        });
 
-        // حفظ البيانات عند إغلاق الصفحة (يجب أن يكون غير متزامن)
+        // تحديث عرض المواد المختارة
+        function updateSelectedSubjectsDisplay() {
+            if (selectedSubjects.length === 0) {
+                subjectsDropdown.textContent = 'اختر المواد الدراسية';
+            } else if (selectedSubjects.includes('جميع المواد')) {
+                subjectsDropdown.textContent = 'جميع المواد';
+            } else {
+                subjectsDropdown.textContent = `${selectedSubjects.length} مادة مختارة`;
+            }
+            
+            selectedSubjectsContainer.innerHTML = '';
+            
+            selectedSubjects.forEach(subject => {
+                const subjectElement = document.createElement('div');
+                subjectElement.className = 'selected-subject';
+                subjectElement.innerHTML = `
+                    ${subject}
+                    <i class="fas fa-times" data-value="${subject}"></i>
+                `;
+                selectedSubjectsContainer.appendChild(subjectElement);
+                
+                subjectElement.querySelector('i').addEventListener('click', function(e) {
+                    e.stopPropagation();
+                    const value = this.getAttribute('data-value');
+                    const index = selectedSubjects.indexOf(value);
+                    if (index !== -1) {
+                        selectedSubjects.splice(index, 1);
+                        updateSelectedSubjectsDisplay();
+                    }
+                });
+            });
+            
+            const options = subjectsOptions.querySelectorAll('.multi-select-option');
+            options.forEach(option => {
+                const value = option.getAttribute('data-value');
+                if (selectedSubjects.includes(value)) {
+                    option.classList.add('selected');
+                } else {
+                    option.classList.remove('selected');
+                }
+            });
+        }
+
+        // حفظ البيانات عند إغلاق الصفحة
         window.addEventListener('beforeunload', async function(event) {
-            // لا نمنع إغلاق الصفحة، فقط نحفظ البيانات
-            // يمكن أن تكون مشكلة في المتصفحات التي تمنع العمليات غير المتزامنة في beforeunload
-            // ولكنها مفيدة للمحاولة على الأقل
             try {
                 await saveDataToDB();
             } catch (error) {
@@ -1938,7 +2103,7 @@
             }
         });
 
-        // حفظ البيانات بشكل دوري كل دقيقة (كإجراء احتياطي)
+        // حفظ البيانات بشكل دوري كل دقيقة
         setInterval(async () => {
             try {
                 await saveDataToDB();
@@ -1946,7 +2111,7 @@
             } catch (error) {
                 console.error("خطأ في الحفظ التلقائي:", error);
             }
-        }, 60 * 1000); // كل دقيقة
+        }, 60 * 1000);
 
         // نسخ كود الطالب
         copyCodeBtn?.addEventListener('click', function() {
@@ -1977,52 +2142,47 @@
             const phone = document.getElementById('new-student-phone').value.trim();
             const email = document.getElementById('new-student-email').value.trim();
             const grade = document.getElementById('new-student-grade').value;
-            const subject = document.getElementById('new-student-subject').value;
             
-            if(name && phone) {
-                // توليد كود فريد للطالب
+            if(name && phone && selectedSubjects.length > 0) {
                 const code = generateStudentCode();
                 
-                // حفظ بيانات الطالب (deviceId سيكون فارغاً عند التسجيل لأول مرة)
                 const student = {
                     id: Date.now(),
                     name,
                     phone,
                     email,
                     grade,
-                    subject,
+                    subjects: [...selectedSubjects],
                     code,
                     date: new Date().toISOString().split('T')[0],
-                    deviceId: null // سيتم تخزينه عند أول تسجيل دخول للطالب
+                    deviceId: null
                 };
                 
                 studentsData.push(student);
-                studentCodes.push(code); // تحديث قائمة الأكواد للتحقق السريع
+                studentCodes.push(code);
                 
                 try {
                     await saveDataToDB();
                     updateTotalStudents();
                     
-                    // عرض الكود المولد
                     studentCodeGenerated.textContent = code;
                     generatedCodeDisplay.style.display = 'block';
                     
-                    // مسح الحقول
                     document.getElementById('new-student-name').value = '';
                     document.getElementById('new-student-phone').value = '';
                     document.getElementById('new-student-email').value = '';
+                    selectedSubjects = [];
+                    updateSelectedSubjectsDisplay();
                     
-                    // إخفاء رسالة الكود بعد 10 ثواني
                     setTimeout(() => {
                         generatedCodeDisplay.style.display = 'none';
                     }, 10000);
-                }
-                 catch (error) {
+                } catch (error) {
                     console.error("خطأ في حفظ بيانات الطالب:", error);
                     alert("حدث خطأ أثناء حفظ بيانات الطالب. قد يكون الكود موجوداً بالفعل أو مشكلة في التخزين.");
                 }
             } else {
-                alert('الرجاء إدخال الاسم ورقم الهاتف على الأقل');
+                alert('الرجاء إدخال الاسم ورقم الهاتف واختيار مادة واحدة على الأقل');
             }
         });
 
@@ -2054,8 +2214,6 @@
                     if (fileInput.files.length > 0) {
                         newVideo.fileName = fileInput.files[0].name;
                         newVideo.fileSize = (fileInput.files[0].size / (1024 * 1024)).toFixed(2) + ' MB';
-                        // في تطبيق حقيقي، ستحتاج إلى رفع هذا الملف إلى خادم
-                        // حالياً، نحن نخزن اسم الملف وحجمه فقط
                     } else {
                         alert('الرجاء اختيار ملف الفيديو');
                         return;
@@ -2102,12 +2260,10 @@
         async function deleteVideo(id) {
             if (!confirm('هل أنت متأكد من حذف هذا الدرس؟')) return;
             
-            // البحث في الفيديوهات المدفوعة
             let index = videosData.findIndex(video => video.id === id);
             if (index !== -1) {
                 videosData.splice(index, 1);
             } else {
-                // البحث في الفيديوهات المجانية
                 index = freeVideosData.findIndex(video => video.id === id);
                 if (index !== -1) {
                     freeVideosData.splice(index, 1);
@@ -2150,7 +2306,6 @@
             }
         }
 
-
         // عرض إدارة الطلاب
         viewStudentsBtn.addEventListener('click', function() {
             renderStudentsTable();
@@ -2178,7 +2333,7 @@
                     const randomIndex = Math.floor(Math.random() * chars.length);
                     code += chars[randomIndex];
                 }
-            } while (studentCodes.includes(code)); // تحقق من القائمة المحلية (المحدثة من IndexedDB)
+            } while (studentCodes.includes(code));
             
             return code;
         }
@@ -2247,7 +2402,7 @@
                 
                 let thumbnailContent = '<i class="fas fa-play-circle"></i>';
                 if (video.type === 'youtube') {
-                    thumbnailContent = '<i class="fab fa-youtube" style="color: white;"></i>'; // تغير اللون ليناسب الخلفية البرتقالية
+                    thumbnailContent = '<i class="fab fa-youtube" style="color: white;"></i>';
                 } else if (video.type === 'file') {
                     thumbnailContent = '<i class="fas fa-file-video"></i>';
                 }
@@ -2289,7 +2444,7 @@
             
             freeVideosData.forEach(video => {
                 const videoCard = document.createElement('div');
-                videoCard.className = 'student-video-card'; // أزلنا free-lecture class للحصول على نفس الألوان
+                videoCard.className = 'student-video-card';
                 
                 let thumbnailContent = '<i class="fas fa-play-circle"></i>';
                 if (video.type === 'youtube') {
@@ -2343,16 +2498,14 @@
             
             if (video) {
                 if (video.type === 'youtube') {
-                    // افتح رابط اليوتيوب في نافذة جديدة
                     window.open(video.youtubeLink, '_blank');
                 } else {
-                    // في بيئة إنتاج، هنا ستقوم بتوفير رابط مباشر للملف أو تشغيله
                     alert(`جاري تحميل الملف: ${video.fileName}\n\nحجم الملف: ${video.fileSize}\n\n(ملاحظة: هذا مجرد عرض، لا يتم تحميل الملف فعلياً في هذا الإصدار).`);
                 }
-                video.views = (video.views || 0) + 1; // زيادة عدد المشاهدات
+                video.views = (video.views || 0) + 1;
                 try {
-                    await saveDataToDB(); // حفظ التغيير في عدد المشاهدات
-                    renderUploadedVideos(); // تحديث عرض الفيديوهات في لوحة تحكم المدرس
+                    await saveDataToDB();
+                    renderUploadedVideos();
                     if (isFree) {
                         renderFreeVideos();
                     } else {
@@ -2387,13 +2540,10 @@
                     document.getElementById('youtube-link').value = video.youtubeLink || '';
                     toggleContentType();
                 } else {
-                    // لا يمكن إعادة تحميل ملف في حقل الإدخال من أجل الأمان
                     toggleContentType();
                 }
                 
-                // بعد ملء الحقول، يجب حذف الفيديو القديم لإنشاء نسخة جديدة معدلة
-                // هذا يبسط عملية التعديل في هذا المثال، في تطبيق حقيقي قد تحتاج لعملية تحديث مباشرة
-                deleteVideo(id); // سيؤدي هذا إلى إعادة حفظ البيانات
+                deleteVideo(id);
                 
                 alert('يمكنك الآن تعديل بيانات الدرس وإعادة رفعه.');
             } else {
@@ -2420,13 +2570,24 @@
             }
             
             studentsData.forEach((student, index) => {
+                let subjectsDisplay = '';
+                if (student.subjects && student.subjects.length > 0) {
+                    if (student.subjects.includes('جميع المواد')) {
+                        subjectsDisplay = 'جميع المواد';
+                    } else {
+                        subjectsDisplay = student.subjects.join('، ');
+                    }
+                } else {
+                    subjectsDisplay = 'غير محدد';
+                }
+                
                 const row = document.createElement('tr');
                 row.innerHTML = `
                     <td>${index + 1}</td>
                     <td>${student.name}</td>
                     <td><strong>${student.code}</strong></td>
                     <td>${student.grade}</td>
-                    <td>${student.subject}</td>
+                    <td>${subjectsDisplay}</td>
                     <td>${student.date}</td>
                     <td>${student.phone || 'غير متوفر'}</td>
                     <td>
@@ -2484,13 +2645,12 @@
         // تسجيل الدخول للطلاب
         studentLoginSubmit.addEventListener('click', async function() {
             const enteredCode = studentCodeInput.value.trim();
-            const currentDeviceId = await getDeviceId(); // الحصول على معرف الجهاز الحالي
+            const currentDeviceId = await getDeviceId();
 
             const student = studentsData.find(s => s.code === enteredCode);
 
             if (student) {
                 if (student.deviceId === null) {
-                    // أول مرة يتم فيها تسجيل الدخول بهذا الكود، ربطه بالجهاز الحالي
                     student.deviceId = currentDeviceId;
                     try {
                         await saveDataToDB();
@@ -2498,21 +2658,17 @@
                         mainScreen.style.display = 'none';
                         studentDashboard.style.display = 'block';
                         studentLoginError.style.display = 'none';
-                        // ******* تم إزالة رسالة "تم تسجيل الدخول بنجاح! تم ربط الكود بجهازك." هنا *******
-                        // alert('تم تسجيل الدخول بنجاح! تم ربط الكود بجهازك.'); // هذا السطر كان يسبب ظهور الرسالة
                     } catch (error) {
                         console.error("خطأ في تحديث deviceId للطالب:", error);
                         studentLoginError.textContent = 'حدث خطأ أثناء ربط الكود بجهازك. الرجاء المحاولة مرة أخرى.';
                         studentLoginError.style.display = 'block';
                     }
                 } else if (student.deviceId === currentDeviceId) {
-                    // الكود مسجل بالفعل على هذا الجهاز
                     studentLoginSection.style.display = 'none';
                     mainScreen.style.display = 'none';
                     studentDashboard.style.display = 'block';
                     studentLoginError.style.display = 'none';
                 } else {
-                    // الكود مسجل على جهاز آخر
                     studentLoginError.textContent = 'هذا الكود مسجل بالفعل على جهاز آخر. يرجى التواصل مع إدارة المعهد.';
                     studentLoginError.style.display = 'block';
                 }
@@ -2559,7 +2715,7 @@
         window.watchVideo = watchVideo;
         window.deleteVideo = deleteVideo;
         window.editVideo = editVideo;
-        window.deleteStudent = deleteStudent; // جعل دالة حذف الطالب متاحة
+        window.deleteStudent = deleteStudent;
     </script>
 </body>
 </html>
