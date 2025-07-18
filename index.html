@@ -6,6 +6,13 @@
     <title>معهد التقدم للدروس الخصوصية</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@300;400;500;700;800&display=swap" rel="stylesheet">
+    
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-firestore-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-storage-compat.js"></script>
+    
     <style>
         :root {
             --primary: #FF6B00;
@@ -20,6 +27,7 @@
             --error: #e74c3c;
             --whatsapp: #25D366;
             --telegram: #0088cc;
+            --info: #17a2b8;
 
             /* Dark Mode Variables */
             --dark-bg: #1a1a2e;
@@ -121,7 +129,7 @@
         body.dark-mode .login-container,
         body.dark-mode .student-login-container,
         body.dark-mode .student-codes-container,
-        body.dark-mode .teacher-videos-modal .modal-content, /* Added for new modal */
+        body.dark-mode .teacher-videos-modal .modal-content,
         body.dark-mode .loader-content {
             background-color: var(--dark-card-bg);
             box-shadow: 0 15px 50px rgba(0,0,0,0.5);
@@ -226,7 +234,7 @@
         }
 
         body.dark-mode .action-btn {
-            color: white; /* Ensure text is white on colored buttons */
+            color: white;
         }
 
         body.dark-mode .student-welcome {
@@ -333,7 +341,7 @@
             color: white;
         }
         
-        body.dark-mode .teacher-card { /* New style for teacher card */
+        body.dark-mode .teacher-card {
             background-color: var(--dark-card-bg);
             box-shadow: 0 5px 15px rgba(0,0,0,0.2);
             border-top: 6px solid var(--primary-light);
@@ -693,7 +701,7 @@
             border-radius: 12px;
             font-size: 1rem;
             transition: border-color 0.3s;
-            background-color: white; /* Ensure consistent background */
+            background-color: white;
         }
         
         .form-group input:focus, .form-group select:focus {
@@ -1148,7 +1156,6 @@
             overflow-y: auto;
         }
 
-        /* New modal for Teacher Videos */
         .teacher-videos-modal {
             display: none;
             position: fixed;
@@ -1419,7 +1426,7 @@
             padding: 14px 20px;
             cursor: pointer;
             background-color: white;
-            margin-bottom: 0; /* Adjusted to fit form-group structure */
+            margin-bottom: 0;
             display: flex;
             align-items: center;
             justify-content: space-between;
@@ -1447,7 +1454,7 @@
             overflow-y: auto;
             z-index: 100;
             box-shadow: 0 5px 15px rgba(0,0,0,0.1);
-            top: 100%; /* Position below the dropdown */
+            top: 100%;
             left: 0;
             margin-top: 5px;
         }
@@ -1492,18 +1499,17 @@
             cursor: pointer;
         }
 
-        /* Added for student dashboard specific content */
         .student-grade-section {
-            display: none; /* Hidden by default */
+            display: none;
         }
         .student-grade-section.active {
-            display: block; /* Shown when active */
+            display: block;
         }
         .student-dashboard .dashboard-content {
-            display: block; /* Change to block for better layout management of grade sections */
+            display: block;
         }
         .student-grade-section .dashboard-card {
-            margin-bottom: 30px; /* Spacing between grade sections */
+            margin-bottom: 30px;
         }
 
         /* Dark Mode Toggle Button */
@@ -1513,7 +1519,7 @@
             font-size: 1.5rem;
             color: var(--text);
             cursor: pointer;
-            margin-right: 15px; /* Adjust as needed */
+            margin-right: 15px;
             transition: color 0.3s;
         }
 
@@ -1529,7 +1535,6 @@
             color: var(--primary-light);
         }
 
-        /* New Styles for Teacher Cards (Student Dashboard) */
         .student-teacher-cards {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
@@ -1577,7 +1582,7 @@
             font-size: 0.95rem;
             color: #666;
             margin-bottom: 15px;
-            min-height: 40px; /* Ensure consistent height */
+            min-height: 40px;
         }
 
         .teacher-card .btn {
@@ -1595,9 +1600,44 @@
         .teacher-card .btn:hover {
             background-color: var(--primary-dark);
         }
+        
+        /* Sync status indicator */
+        .sync-status {
+            position: fixed;
+            bottom: 20px;
+            left: 20px;
+            padding: 8px 15px;
+            border-radius: 20px;
+            font-size: 0.9rem;
+            z-index: 1000;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        
+        .sync-status.online {
+            background-color: var(--success);
+            color: white;
+        }
+        
+        .sync-status.offline {
+            background-color: var(--error);
+            color: white;
+        }
+        
+        .sync-status.syncing {
+            background-color: var(--info);
+            color: white;
+        }
     </style>
 </head>
 <body>
+    <!-- Sync status indicator -->
+    <div class="sync-status offline" id="sync-status">
+        <i class="fas fa-cloud"></i> <span>جاري الاتصال بالسحابة...</span>
+    </div>
+    
     <nav class="navbar">
         <div class="container nav-container">
             <div class="logo">
@@ -2085,13 +2125,30 @@
     </footer>
 
     <script>
+        // Firebase configuration - Replace with your actual config
+        const firebaseConfig = {
+            apiKey: "AIzaSyB_3c0Vz8w1C0G7w2pRjLg5vXh8eKvX5fQ",
+            authDomain: "altakadum-institute.firebaseapp.com",
+            projectId: "altakadum-institute",
+            storageBucket: "altakadum-institute.appspot.com",
+            messagingSenderId: "123456789012",
+            appId: "1:123456789012:web:abcdef1234567890abcdef"
+        };
+        
+        // Initialize Firebase
+        firebase.initializeApp(firebaseConfig);
+        const dbFirestore = firebase.firestore();
+        const auth = firebase.auth();
+        const storage = firebase.storage();
+        
         // بيانات التطبيق
         const studentCodes = [];
         const studentsData = [];
-        const videosData = []; // Paid videos
-        const freeVideosData = []; // Free videos
+        const videosData = [];
+        const freeVideosData = [];
         let selectedSubjects = [];
-        let currentStudent = null; // To store the logged-in student object
+        let currentStudent = null;
+        let isOnline = false;
         
         // عناصر DOM
         const mainScreen = document.getElementById('main-screen');
@@ -2111,10 +2168,10 @@
         const studentDashboard = document.getElementById('student-dashboard');
         const studentLogout = document.getElementById('student-logout');
         const studentWelcomeMessage = document.getElementById('student-welcome-message');
-        const studentTeacherCardsContainer = document.getElementById('student-teacher-cards'); // New container for teacher cards
+        const studentTeacherCardsContainer = document.getElementById('student-teacher-cards');
         const uploadVideoBtn = document.getElementById('upload-video');
         const uploadedVideosContainer = document.getElementById('uploaded-videos');
-        const freeVideoList = document.getElementById('free-video-list'); // Renamed from studentVideoList to be clear
+        const freeVideoList = document.getElementById('free-video-list');
         const totalVideosSpan = document.getElementById('total-videos');
         const totalStudentsSpan = document.getElementById('total-students');
         const viewStudentsBtn = document.getElementById('view-students-btn');
@@ -2136,9 +2193,9 @@
         const subjectsOptions = document.getElementById('subjects-options');
         const selectedSubjectsContainer = document.getElementById('selected-subjects');
         const darkModeToggle = document.getElementById('dark-mode-toggle');
-        const teacherNameSelect = document.getElementById('teacher-name-select'); // New: Teacher name select in upload form
-        
-        // New elements for teacher videos modal
+        const teacherNameSelect = document.getElementById('teacher-name-select');
+        const syncStatus = document.getElementById('sync-status');
+        const syncStatusText = syncStatus.querySelector('span');
         const teacherVideosModal = document.getElementById('teacher-videos-modal');
         const closeTeacherVideosModal = document.getElementById('close-teacher-videos-modal');
         const teacherVideosModalTitle = document.getElementById('teacher-videos-modal-title');
@@ -2154,11 +2211,74 @@
         // تعريف قاعدة البيانات IndexedDB
         let db;
         const DB_NAME = "InstituteDB";
-        const DB_VERSION = 8; // Increased version for new student fields, video categories, and teacherName
+        const DB_VERSION = 8;
         const STUDENTS_STORE = "students";
-        const VIDEOS_STORE = "videos"; // For paid content
-        const FREE_VIDEOS_STORE = "free_videos"; // For free content
-        const DB_SIZE = 50 * 1024 * 1024; // 50MB storage size
+        const VIDEOS_STORE = "videos";
+        const FREE_VIDEOS_STORE = "free_videos";
+        const DB_SIZE = 50 * 1024 * 1024;
+
+        // تحديث حالة الاتصال
+        function updateOnlineStatus() {
+            isOnline = navigator.onLine;
+            if (isOnline) {
+                syncStatus.className = "sync-status syncing";
+                syncStatusText.textContent = "جاري مزامنة البيانات مع السحابة...";
+                syncWithFirebase();
+            } else {
+                syncStatus.className = "sync-status offline";
+                syncStatusText.textContent = "غير متصل بالسحابة (وضع عدم الاتصال)";
+            }
+        }
+
+        // المزامنة مع Firebase
+        async function syncWithFirebase() {
+            try {
+                // مزامنة الطلاب
+                const studentsSnapshot = await dbFirestore.collection("students").get();
+                studentsData.length = 0;
+                studentsSnapshot.forEach(doc => {
+                    studentsData.push(doc.data());
+                });
+
+                // مزامنة الفيديوهات المدفوعة
+                const videosSnapshot = await dbFirestore.collection("videos").get();
+                videosData.length = 0;
+                videosSnapshot.forEach(doc => {
+                    videosData.push(doc.data());
+                });
+
+                // مزامنة الفيديوهات المجانية
+                const freeVideosSnapshot = await dbFirestore.collection("free_videos").get();
+                freeVideosData.length = 0;
+                freeVideosSnapshot.forEach(doc => {
+                    freeVideosData.push(doc.data());
+                });
+
+                // حفظ البيانات محلياً
+                await saveDataToDB();
+                
+                // تحديث الواجهة
+                renderUploadedVideos();
+                renderFreeVideos();
+                updateTotalVideos();
+                updateTotalStudents();
+                
+                syncStatus.className = "sync-status online";
+                syncStatusText.textContent = "مزامن مع السحابة بنجاح";
+                
+                setTimeout(() => {
+                    if (isOnline) {
+                        syncStatus.className = "sync-status online";
+                        syncStatusText.textContent = "متصل بالسحابة";
+                    }
+                }, 3000);
+                
+            } catch (error) {
+                console.error("خطأ في مزامنة البيانات مع Firebase:", error);
+                syncStatus.className = "sync-status offline";
+                syncStatusText.textContent = "خطأ في الاتصال بالسحابة";
+            }
+        }
 
         // عرض مؤشر التحميل
         function showLoader() {
@@ -2170,7 +2290,7 @@
             loader.style.display = 'none';
         }
 
-        // تهيئة قاعدة البيانات
+        // تهيئة قاعدة البيانات المحلية
         function initDB() {
             return new Promise((resolve, reject) => {
                 const request = indexedDB.open(DB_NAME, DB_VERSION);
@@ -2193,11 +2313,9 @@
                         alert("يجب تحديث الصفحة لتطبيق التحديثات الجديدة");
                     };
                     
-                    // Check for required storage space
-                    const neededSpace = DB_SIZE;
                     if (navigator.storage && navigator.storage.estimate) {
                         navigator.storage.estimate().then(estimate => {
-                            if (estimate.quota < neededSpace) {
+                            if (estimate.quota < DB_SIZE) {
                                 return navigator.storage.persist().then(persisted => {
                                     if (persisted) {
                                         console.log("تم تخصيص مساحة تخزين دائمة");
@@ -2220,7 +2338,6 @@
                 request.onupgradeneeded = function(event) {
                     const db = event.target.result;
                     
-                    // Delete old stores if they exist
                     if (db.objectStoreNames.contains(STUDENTS_STORE)) {
                         db.deleteObjectStore(STUDENTS_STORE);
                     }
@@ -2231,7 +2348,6 @@
                         db.deleteObjectStore(FREE_VIDEOS_STORE);
                     }
                     
-                    // Create new stores with appropriate keys and indexes
                     const studentsStore = db.createObjectStore(STUDENTS_STORE, { keyPath: "code" });
                     studentsStore.createIndex("by_id", "id", { unique: true });
                     studentsStore.createIndex("by_name", "name");
@@ -2241,12 +2357,12 @@
                     const videosStore = db.createObjectStore(VIDEOS_STORE, { keyPath: "id" });
                     videosStore.createIndex("by_subject", "subject");
                     videosStore.createIndex("by_level", "level");
-                    videosStore.createIndex("by_teacher", "teacherName"); // New index for teacher name
+                    videosStore.createIndex("by_teacher", "teacherName");
                     
                     const freeVideosStore = db.createObjectStore(FREE_VIDEOS_STORE, { keyPath: "id" });
                     freeVideosStore.createIndex("by_subject", "subject");
                     freeVideosStore.createIndex("by_level", "level");
-                    freeVideosStore.createIndex("by_teacher", "teacherName"); // New index for teacher name
+                    freeVideosStore.createIndex("by_teacher", "teacherName");
                     
                     console.log("تم إنشاء مخازن البيانات الجديدة مع الفهارس");
                 };
@@ -2424,6 +2540,12 @@
                 renderFreeVideos();
                 updateTotalVideos();
                 updateTotalStudents();
+                
+                // Set up online/offline detection
+                window.addEventListener('online', updateOnlineStatus);
+                window.addEventListener('offline', updateOnlineStatus);
+                updateOnlineStatus();
+                
                 console.log("تم تهيئة التطبيق بنجاح");
                 
             } catch (error) {
@@ -2463,14 +2585,12 @@
                     const value = this.getAttribute('data-value');
                     
                     if (value === 'جميع المواد') {
-                        // If "All Subjects" is selected, clear others and select "All Subjects"
                         if (selectedSubjects.includes('جميع المواد')) {
                              selectedSubjects = [];
                         } else {
                             selectedSubjects = ['جميع المواد'];
                         }
                     } else {
-                        // If another subject is selected, remove "All Subjects" if it was selected
                         const allSubjectsIndex = selectedSubjects.indexOf('جميع المواد');
                         if (allSubjectsIndex !== -1) {
                             selectedSubjects.splice(allSubjectsIndex, 1);
@@ -2613,17 +2733,24 @@
                     phone,
                     email,
                     grade,
-                    subjects: [...selectedSubjects], // Ensure a copy is used
+                    subjects: [...selectedSubjects],
                     code,
                     date: new Date().toISOString().split('T')[0],
-                    deviceId: null // deviceId is null initially
+                    deviceId: null
                 };
                 
                 studentsData.push(student);
                 studentCodes.push(code);
                 
                 try {
+                    // Save to local DB
                     await saveDataToDB();
+                    
+                    // Save to Firebase if online
+                    if (isOnline) {
+                        await dbFirestore.collection("students").doc(code).set(student);
+                    }
+                    
                     updateTotalStudents();
                     
                     studentCodeGenerated.textContent = code;
@@ -2632,9 +2759,9 @@
                     document.getElementById('new-student-name').value = '';
                     document.getElementById('new-student-phone').value = '';
                     document.getElementById('new-student-email').value = '';
-                    document.getElementById('new-student-grade').value = 'التهجي'; // Reset to default
+                    document.getElementById('new-student-grade').value = 'التهجي';
                     selectedSubjects = [];
-                    updateSelectedSubjectsDisplay(); // Clear selected subjects display
+                    updateSelectedSubjectsDisplay();
                     
                     setTimeout(() => {
                         generatedCodeDisplay.style.display = 'none';
@@ -2650,22 +2777,22 @@
 
         // رفع فيديو جديد
         uploadVideoBtn.addEventListener('click', async function() {
-            const teacherName = teacherNameSelect.value; // Get selected teacher name
+            const teacherName = teacherNameSelect.value;
             const title = document.getElementById('video-title').value;
             const description = document.getElementById('video-description').value;
             const subject = document.getElementById('video-subject').value;
-            const level = document.getElementById('video-level').value; // This is the grade level
+            const level = document.getElementById('video-level').value;
             const contentType = document.getElementById('content-type').value;
             const contentCategory = document.getElementById('content-category').value;
             
             if(title && description && teacherName) {
                 const newVideo = {
                     id: Date.now(),
-                    teacherName, // Store teacher name
+                    teacherName,
                     title,
                     description,
                     subject,
-                    level, // Store the grade level
+                    level,
                     date: new Date().toISOString().split('T')[0],
                     views: 0,
                     rating: 0,
@@ -2699,9 +2826,20 @@
                 }
                 
                 try {
+                    // Save to local DB
                     await saveDataToDB();
+                    
+                    // Save to Firebase if online
+                    if (isOnline) {
+                        if (contentCategory === 'free') {
+                            await dbFirestore.collection("free_videos").doc(newVideo.id.toString()).set(newVideo);
+                        } else {
+                            await dbFirestore.collection("videos").doc(newVideo.id.toString()).set(newVideo);
+                        }
+                    }
+                    
                     renderUploadedVideos();
-                    renderFreeVideos(); // Re-render free videos
+                    renderFreeVideos();
                     updateTotalVideos();
                     
                     // Clear form fields
@@ -2709,12 +2847,12 @@
                     document.getElementById('video-description').value = '';
                     document.getElementById('video-file').value = '';
                     document.getElementById('youtube-link').value = '';
-                    document.getElementById('content-type').value = 'file'; // Reset to default
-                    toggleContentType(); // Adjust display based on default
-                    document.getElementById('content-category').value = 'paid'; // Reset to default
-                    document.getElementById('video-subject').value = 'رياضيات'; // Reset to default
-                    document.getElementById('video-level').value = 'التهجي'; // Reset to default
-                    teacherNameSelect.value = 'أ. محمد أحمد'; // Reset teacher name
+                    document.getElementById('content-type').value = 'file';
+                    toggleContentType();
+                    document.getElementById('content-category').value = 'paid';
+                    document.getElementById('video-subject').value = 'رياضيات';
+                    document.getElementById('video-level').value = 'التهجي';
+                    teacherNameSelect.value = 'أ. محمد أحمد';
                     
                     alert('تم رفع الدرس بنجاح!');
                 } catch (error) {
@@ -2741,9 +2879,17 @@
             }
             
             try {
+                // Save to local DB
                 await saveDataToDB();
+                
+                // Delete from Firebase if online
+                if (isOnline) {
+                    await dbFirestore.collection("videos").doc(id.toString()).delete();
+                    await dbFirestore.collection("free_videos").doc(id.toString()).delete();
+                }
+                
                 renderUploadedVideos();
-                if (currentStudent) { // Only re-render if a student is logged in
+                if (currentStudent) {
                     renderStudentDashboard();
                 }
                 renderFreeVideos();
@@ -2767,7 +2913,14 @@
                     studentCodes.splice(codeIndex, 1);
                 }
                 try {
+                    // Save to local DB
                     await saveDataToDB();
+                    
+                    // Delete from Firebase if online
+                    if (isOnline) {
+                        await dbFirestore.collection("students").doc(code).delete();
+                    }
+                    
                     renderStudentsTable();
                     updateTotalStudents();
                     alert('تم حذف الطالب بنجاح');
@@ -2810,7 +2963,7 @@
             return code;
         }
 
-        // عرض الفيديوهات المرفوعة للتدريسين (مدفوعة ومجانية)
+        // عرض الفيديوهات المرفوعة للتدريسين
         function renderUploadedVideos() {
             if (!uploadedVideosContainer) return;
             
@@ -2827,7 +2980,7 @@
                 return;
             }
             
-            allVideos.sort((a, b) => b.id - a.id); // Sort by newest first
+            allVideos.sort((a, b) => b.id - a.id);
             
             allVideos.forEach(video => {
                 const videoElement = document.createElement('div');
@@ -2871,7 +3024,7 @@
                 return;
             }
             
-            freeVideosData.sort((a, b) => b.id - a.id); // Sort by newest first
+            freeVideosData.sort((a, b) => b.id - a.id);
 
             freeVideosData.forEach(video => {
                 const videoCard = document.createElement('div');
@@ -2936,12 +3089,27 @@
                 }
                 video.views = (video.views || 0) + 1;
                 try {
+                    // Save to local DB
                     await saveDataToDB();
-                    renderUploadedVideos(); // Update teacher dashboard
+                    
+                    // Update in Firebase if online
+                    if (isOnline) {
+                        if (isFree) {
+                            await dbFirestore.collection("free_videos").doc(id.toString()).update({
+                                views: video.views
+                            });
+                        } else {
+                            await dbFirestore.collection("videos").doc(id.toString()).update({
+                                views: video.views
+                            });
+                        }
+                    }
+                    
+                    renderUploadedVideos();
                     if (isFree) {
-                        renderFreeVideos(); // Update free lectures section
+                        renderFreeVideos();
                     } else if (currentStudent) {
-                        showTeacherVideosModal(video.teacherName); // Refresh the modal with updated views
+                        showTeacherVideosModal(video.teacherName);
                     }
                 } catch (error) {
                     console.error("خطأ في تحديث عدد المشاهدات:", error);
@@ -2961,7 +3129,7 @@
             }
             
             if (video) {
-                document.getElementById('teacher-name-select').value = video.teacherName; // Populate teacher name
+                document.getElementById('teacher-name-select').value = video.teacherName;
                 document.getElementById('video-title').value = video.title;
                 document.getElementById('video-description').value = video.description;
                 document.getElementById('video-subject').value = video.subject;
@@ -2973,11 +3141,11 @@
                     document.getElementById('youtube-link').value = video.youtubeLink || '';
                     toggleContentType();
                 } else {
-                    document.getElementById('video-file').value = ''; // Clear file input as it can't be pre-filled
+                    document.getElementById('video-file').value = '';
                     toggleContentType();
                 }
                 
-                deleteVideo(id); // Delete the old entry so a new one can be created with updated info
+                deleteVideo(id);
                 
                 alert('يمكنك الآن تعديل بيانات الدرس وإعادة رفعه.');
             } else {
@@ -3003,7 +3171,7 @@
                 return;
             }
             
-            studentsData.sort((a, b) => a.name.localeCompare(b.name, 'ar')); // Sort students by name
+            studentsData.sort((a, b) => a.name.localeCompare(b.name, 'ar'));
             
             studentsData.forEach((student, index) => {
                 let subjectsDisplay = '';
@@ -3090,9 +3258,17 @@
                     student.deviceId = currentDeviceId;
                     try {
                         await saveDataToDB();
-                        currentStudent = student; // Store the current student object
+                        
+                        // Update in Firebase if online
+                        if (isOnline) {
+                            await dbFirestore.collection("students").doc(student.code).update({
+                                deviceId: currentDeviceId
+                            });
+                        }
+                        
+                        currentStudent = student;
                         studentWelcomeMessage.textContent = `مرحباً بك، ${currentStudent.name} في صف ${currentStudent.grade}.`;
-                        renderStudentDashboard(); // Render teacher cards for the student
+                        renderStudentDashboard();
                         
                         studentLoginSection.style.display = 'none';
                         mainScreen.style.display = 'none';
@@ -3104,9 +3280,9 @@
                         studentLoginError.style.display = 'block';
                     }
                 } else if (student.deviceId === currentDeviceId) {
-                    currentStudent = student; // Store the current student object
+                    currentStudent = student;
                     studentWelcomeMessage.textContent = `مرحباً بك، ${currentStudent.name} في صف ${currentStudent.grade}.`;
-                    renderStudentDashboard(); // Render teacher cards for the student
+                    renderStudentDashboard();
 
                     studentLoginSection.style.display = 'none';
                     mainScreen.style.display = 'none';
@@ -3131,7 +3307,6 @@
             const studentGrade = currentStudent.grade;
             const studentSubjects = currentStudent.subjects;
 
-            // Get unique teachers who teach the student's grade and subjects
             const relevantVideos = videosData.filter(video => 
                 video.level === studentGrade && 
                 (studentSubjects.includes('جميع المواد') || studentSubjects.includes(video.subject))
@@ -3148,7 +3323,6 @@
                 return;
             }
 
-            // Limit to 7 teacher cards as requested by the user
             const teachersToDisplay = uniqueTeachers.slice(0, 7);
 
             teachersToDisplay.forEach(teacherName => {
@@ -3183,7 +3357,7 @@
                 video.teacherName === teacherName &&
                 video.level === studentGrade && 
                 (studentSubjects.includes('جميع المواد') || studentSubjects.includes(video.subject))
-            ).sort((a, b) => b.id - a.id); // Sort by newest first
+            ).sort((a, b) => b.id - a.id);
 
             if (teacherVideos.length === 0) {
                 teacherVideosEmptyMessage.style.display = 'block';
@@ -3231,7 +3405,7 @@
             e.preventDefault();
             mainScreen.style.display = 'none';
             freeLecturesSection.style.display = 'block';
-            renderFreeVideos(); // Ensure free videos are rendered
+            renderFreeVideos();
         });
 
         // العودة من المحاضرات المجانية
@@ -3255,7 +3429,7 @@
 
         studentLogout.addEventListener('click', async function() {
             await saveDataToDB();
-            currentStudent = null; // Clear the student object on logout
+            currentStudent = null;
             studentDashboard.style.display = 'none';
             mainScreen.style.display = 'flex';
         });
@@ -3266,7 +3440,7 @@
         window.deleteVideo = deleteVideo;
         window.editVideo = editVideo;
         window.deleteStudent = deleteStudent;
-        window.showTeacherVideosModal = showTeacherVideosModal; // Make new function globally accessible
+        window.showTeacherVideosModal = showTeacherVideosModal;
     </script>
 </body>
 </html>
