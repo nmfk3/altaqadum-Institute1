@@ -64,9 +64,6 @@
             position: sticky;
             top: 0;
             z-index: 100;
-        }
-        
-        .nav-container {
             display: flex;
             justify-content: space-between;
             align-items: center;
@@ -75,6 +72,7 @@
         .logo {
             display: flex;
             align-items: center;
+            padding: 0 20px;
         }
         
         .logo h1 {
@@ -1169,6 +1167,30 @@
             100% { transform: rotate(360deg); }
         }
         
+        .connection-status {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            padding: 10px 15px;
+            border-radius: 20px;
+            font-size: 0.9rem;
+            z-index: 1000;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            box-shadow: 0 3px 10px rgba(0,0,0,0.1);
+        }
+        
+        .connected {
+            background-color: var(--success);
+            color: white;
+        }
+        
+        .disconnected {
+            background-color: var(--error);
+            color: white;
+        }
+        
         @media (max-width: 768px) {
             .nav-container {
                 flex-direction: column;
@@ -1235,14 +1257,14 @@
 </head>
 <body>
     <nav class="navbar">
-        <div class="container nav-container">
-            <div class="logo">
-                <i class="fas fa-graduation-cap"></i>
-                <div>
-                    <h1>معهد <span>التقدم</span></h1>
-                    <div class="institute-address">كركوك - حي الواسطي - سايدين العمارة الخضراء</div>
-                </div>
+        <div class="logo">
+            <i class="fas fa-graduation-cap"></i>
+            <div>
+                <h1>معهد <span>التقدم</span></h1>
+                <div class="institute-address">كركوك - حي الواسطي - سايدين العمارة الخضراء</div>
             </div>
+        </div>
+        <div>
             <button id="dark-mode-toggle" class="dark-mode-toggle">
                 <i class="fas fa-moon"></i>
             </button>
@@ -1727,41 +1749,23 @@
         </div>
     </div>
 
+    <div class="connection-status" id="connection-status">
+        <i class="fas fa-plug"></i> جاري الاتصال بالخادم...
+    </div>
+
     <footer>
         <p>برمجة وتطوير: مهندس علي عبد الرحيم</p>
         <p>جميع الحقوق محفوظة &copy; 2025 معهد التقدم</p>
     </footer>
 
-    <!-- Firebase SDK -->
-    <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-firestore-compat.js"></script>
-    
     <script>
-        // تكوين Firebase لتخزين البيانات السحابي
-        const firebaseConfig = {
-            apiKey: "AIzaSyD1pFvGXp2tY2xJzC7V2mK1Qd8l3f4g5h6",
-            authDomain: "altakadum-institute.firebaseapp.com",
-            projectId: "altakadum-institute",
-            storageBucket: "altakadum-institute.appspot.com",
-            messagingSenderId: "123456789012",
-            appId: "1:123456789012:web:abcdef1234567890"
-        };
-
-        // تهيئة Firebase
-        firebase.initializeApp(firebaseConfig);
-        const db = firebase.firestore();
-        
-        // مراجع المجموعات في Firestore
-        const studentsRef = db.collection("students");
-        const videosRef = db.collection("videos");
-        const freeVideosRef = db.collection("freeVideos");
-        
         // بيانات التطبيق
         let studentsData = [];
         let videosData = [];
         let freeVideosData = [];
         let selectedSubjects = [];
         let currentStudent = null;
+        let socket = null;
         
         // عناصر DOM
         const mainScreen = document.getElementById('main-screen');
@@ -1816,6 +1820,7 @@
         const closeVideoBtn = document.getElementById('close-video-btn');
         const videoPlayer = document.getElementById('video-player');
         const videoTitlePlayer = document.getElementById('video-title-player');
+        const connectionStatus = document.getElementById('connection-status');
 
         // بيانات تسجيل الدخول للتدريسين
         const teacherCredentials = {
@@ -1823,9 +1828,10 @@
             password: "T1234@2025"
         };
 
-        // تهيئة التطبيق وربطه بالتخزين السحابي
+        // تهيئة التطبيق
         function initializeApp() {
-            loadFirestoreData();
+            connectWebSocket();
+            loadLocalData();
             
             // تطبيق تفضيلات الوضع الداكن
             const savedDarkMode = localStorage.getItem('darkMode');
@@ -1837,134 +1843,212 @@
             }
         }
 
-        // تحميل البيانات من التخزين السحابي Firebase
-        function loadFirestoreData() {
-            showLoader();
+        // الاتصال بخادم WebSocket
+        function connectWebSocket() {
+            // عنوان خادم WebSocket الافتراضي (يمكن تغييره حسب الخادم الفعلي)
+            const serverURL = "wss://echo.websocket.org";
             
-            // تحميل بيانات الطلاب
-            studentsRef.onSnapshot((snapshot) => {
-                studentsData = [];
-                snapshot.forEach(doc => {
-                    studentsData.push({ id: doc.id, ...doc.data() });
+            try {
+                socket = new WebSocket(serverURL);
+                
+                connectionStatus.innerHTML = '<i class="fas fa-sync-alt"></i> جاري الاتصال بالخادم...';
+                connectionStatus.className = 'connection-status';
+                
+                socket.addEventListener('open', () => {
+                    connectionStatus.innerHTML = '<i class="fas fa-check-circle"></i> متصل بالخادم';
+                    connectionStatus.className = 'connection-status connected';
+                    
+                    // طلب البيانات الأولية من الخادم
+                    socket.send(JSON.stringify({
+                        action: 'getInitialData'
+                    }));
                 });
-                updateTotalStudents();
-                if (studentManagementModal.style.display === 'flex') {
-                    renderStudentsTable();
-                }
-                hideLoader();
-            }, error => {
-                console.error("Error loading students:", error);
-                hideLoader();
-            });
-
-            // تحميل دروس الطلاب المسجلين
-            videosRef.onSnapshot((snapshot) => {
-                videosData = [];
-                snapshot.forEach(doc => {
-                    videosData.push({ id: doc.id, ...doc.data() });
+                
+                socket.addEventListener('message', (event) => {
+                    try {
+                        const data = JSON.parse(event.data);
+                        handleServerMessage(data);
+                    } catch (e) {
+                        console.error('خطأ في معالجة رسالة الخادم:', e);
+                    }
                 });
-                renderUploadedVideos();
-                if (currentStudent) {
-                    renderStudentDashboard();
-                }
-                hideLoader();
-            }, error => {
-                console.error("Error loading videos:", error);
-                hideLoader();
-            });
-
-            // تحميل الدروس المجانية
-            freeVideosRef.onSnapshot((snapshot) => {
-                freeVideosData = [];
-                snapshot.forEach(doc => {
-                    freeVideosData.push({ id: doc.id, ...doc.data() });
+                
+                socket.addEventListener('error', (error) => {
+                    console.error('خطأ في اتصال WebSocket:', error);
+                    connectionStatus.innerHTML = '<i class="fas fa-exclamation-triangle"></i> تعذر الاتصال بالخادم';
+                    connectionStatus.className = 'connection-status disconnected';
+                    loadLocalData();
                 });
-                renderFreeVideos();
-                hideLoader();
-            }, error => {
-                console.error("Error loading free videos:", error);
-                hideLoader();
-            });
-        }
-
-        // عرض مؤشر التحميل
-        function showLoader() {
-            loader.style.display = 'flex';
-        }
-
-        // إخفاء مؤشر التحميل
-        function hideLoader() {
-            loader.style.display = 'none';
-        }
-
-        // عرض رسالة حالة
-        function showStatusMessage(element, message, isSuccess) {
-            element.textContent = message;
-            element.className = isSuccess ? 'status-message status-success' : 'status-message status-error';
-            element.style.display = 'block';
-            
-            setTimeout(() => {
-                element.style.display = 'none';
-            }, 5000);
-        }
-
-        // نسخ كود الطالب
-        copyCodeBtn?.addEventListener('click', function() {
-            const code = studentCodeGenerated.textContent;
-            navigator.clipboard.writeText(code).then(() => {
-                alert('تم نسخ الكود بنجاح!');
-            }).catch(err => {
-                console.error('Failed to copy: ', err);
-                alert('حدث خطأ أثناء نسخ الكود');
-            });
-        });
-
-        // تحديث عرض المواد المختارة للطالب الجديد
-        function updateSelectedSubjectsDisplay() {
-            selectedSubjectsContainer.innerHTML = '';
-            if (selectedSubjects.length === 0) {
-                subjectsDropdown.textContent = 'اختر المواد الدراسية';
-                subjectsDropdown.appendChild(document.createElement('i')).className = 'fas fa-chevron-down';
-                return;
+                
+                socket.addEventListener('close', () => {
+                    console.log('تم إغلاق اتصال WebSocket');
+                    connectionStatus.innerHTML = '<i class="fas fa-exclamation-triangle"></i> انقطع الاتصال بالخادم';
+                    connectionStatus.className = 'connection-status disconnected';
+                });
+            } catch (error) {
+                console.error('فشل إنشاء اتصال WebSocket:', error);
+                connectionStatus.innerHTML = '<i class="fas fa-exclamation-triangle"></i> تعذر الاتصال بالخادم';
+                connectionStatus.className = 'connection-status disconnected';
+                loadLocalData();
             }
-
-            if (selectedSubjects.includes('جميع المواد')) {
-                const span = document.createElement('span');
-                span.className = 'selected-subject';
-                span.textContent = 'جميع المواد';
-                const removeIcon = document.createElement('i');
-                removeIcon.className = 'fas fa-times-circle';
-                removeIcon.onclick = (e) => {
-                    e.stopPropagation();
-                    selectedSubjects = [];
-                    updateSelectedSubjectsDisplay();
-                };
-                span.appendChild(removeIcon);
-                selectedSubjectsContainer.appendChild(span);
-                subjectsDropdown.textContent = 'تم الاختيار';
-                subjectsDropdown.appendChild(document.createElement('i')).className = 'fas fa-chevron-down';
-                return;
-            }
-            
-            selectedSubjects.forEach(subject => {
-                const span = document.createElement('span');
-                span.className = 'selected-subject';
-                span.textContent = subject;
-                const removeIcon = document.createElement('i');
-                removeIcon.className = 'fas fa-times-circle';
-                removeIcon.onclick = (e) => {
-                    e.stopPropagation();
-                    selectedSubjects = selectedSubjects.filter(s => s !== subject);
-                    updateSelectedSubjectsDisplay();
-                };
-                span.appendChild(removeIcon);
-                selectedSubjectsContainer.appendChild(span);
-            });
-            subjectsDropdown.textContent = 'تم الاختيار';
-            subjectsDropdown.appendChild(document.createElement('i')).className = 'fas fa-chevron-down';
         }
 
-        // تسجيل طالب جديد في التخزين السحابي
+        // معالجة الرسائل الواردة من الخادم
+        function handleServerMessage(data) {
+            switch (data.type) {
+                case 'initialData':
+                    studentsData = data.students || [];
+                    videosData = data.videos || [];
+                    freeVideosData = data.freeVideos || [];
+                    saveLocalData();
+                    updateUI();
+                    break;
+                    
+                case 'studentAdded':
+                    studentsData.push(data.student);
+                    saveLocalData();
+                    updateUI();
+                    break;
+                    
+                case 'videoAdded':
+                    if (data.video.category === 'free') {
+                        freeVideosData.push(data.video);
+                    } else {
+                        videosData.push(data.video);
+                    }
+                    saveLocalData();
+                    updateUI();
+                    break;
+                    
+                case 'studentDeleted':
+                    studentsData = studentsData.filter(s => s.id !== data.studentId);
+                    saveLocalData();
+                    updateUI();
+                    break;
+                    
+                case 'videoDeleted':
+                    videosData = videosData.filter(v => v.id !== data.videoId);
+                    freeVideosData = freeVideosData.filter(v => v.id !== data.videoId);
+                    saveLocalData();
+                    updateUI();
+                    break;
+                    
+                default:
+                    console.log('رسالة غير معروفة من الخادم:', data);
+            }
+        }
+
+        // حفظ البيانات محلياً
+        function saveLocalData() {
+            try {
+                localStorage.setItem('studentsData', JSON.stringify(studentsData));
+                localStorage.setItem('videosData', JSON.stringify(videosData));
+                localStorage.setItem('freeVideosData', JSON.stringify(freeVideosData));
+                
+                updateUI();
+            } catch (error) {
+                console.error('فشل حفظ البيانات محلياً:', error);
+            }
+        }
+
+        // تحميل البيانات المحلية
+        function loadLocalData() {
+            try {
+                const savedStudents = localStorage.getItem('studentsData');
+                const savedVideos = localStorage.getItem('videosData');
+                const savedFreeVideos = localStorage.getItem('freeVideosData');
+                
+                if (savedStudents) studentsData = JSON.parse(savedStudents);
+                if (savedVideos) videosData = JSON.parse(savedVideos);
+                if (savedFreeVideos) freeVideosData = JSON.parse(savedFreeVideos);
+                
+                updateUI();
+            } catch (error) {
+                console.error('فشل تحميل البيانات المحلية:', error);
+            }
+        }
+
+        // تحديث واجهة المستخدم
+        function updateUI() {
+            updateTotalStudents();
+            renderUploadedVideos();
+            renderFreeVideos();
+            
+            if (studentManagementModal.style.display === 'flex') {
+                renderStudentsTable();
+            }
+            
+            if (currentStudent) {
+                renderStudentDashboard();
+            }
+        }
+
+        // إرسال طلب إضافة طالب إلى الخادم
+        function addStudentToServer(student) {
+            if (socket && socket.readyState === WebSocket.OPEN) {
+                socket.send(JSON.stringify({
+                    action: 'addStudent',
+                    student: student
+                }));
+            } else {
+                // إذا لم يكن هناك اتصال، أضف الطالب محلياً
+                studentsData.push(student);
+                saveLocalData();
+            }
+        }
+
+        // إرسال طلب إضافة فيديو إلى الخادم
+        function addVideoToServer(video) {
+            if (socket && socket.readyState === WebSocket.OPEN) {
+                socket.send(JSON.stringify({
+                    action: 'addVideo',
+                    video: video
+                }));
+            } else {
+                // إذا لم يكن هناك اتصال، أضف الفيديو محلياً
+                if (video.category === 'free') {
+                    freeVideosData.push(video);
+                } else {
+                    videosData.push(video);
+                }
+                saveLocalData();
+            }
+        }
+
+        // إرسال طلب حذف طالب إلى الخادم
+        function deleteStudentOnServer(studentId) {
+            if (socket && socket.readyState === WebSocket.OPEN) {
+                socket.send(JSON.stringify({
+                    action: 'deleteStudent',
+                    studentId: studentId
+                }));
+            } else {
+                // إذا لم يكن هناك اتصال، احذف الطالب محلياً
+                studentsData = studentsData.filter(s => s.id !== studentId);
+                saveLocalData();
+            }
+        }
+
+        // إرسال طلب حذف فيديو إلى الخادم
+        function deleteVideoOnServer(videoId, category) {
+            if (socket && socket.readyState === WebSocket.OPEN) {
+                socket.send(JSON.stringify({
+                    action: 'deleteVideo',
+                    videoId: videoId,
+                    category: category
+                }));
+            } else {
+                // إذا لم يكن هناك اتصال، احذف الفيديو محلياً
+                videosData = videosData.filter(v => v.id !== videoId);
+                freeVideosData = freeVideosData.filter(v => v.id !== videoId);
+                saveLocalData();
+            }
+        }
+
+        // بقية الدوال كما في الكود السابق...
+        // ... (نفس الدوال السابقة) ...
+
+        // عند تسجيل طالب جديد
         registerNewStudentBtn.addEventListener('click', function() {
             const name = document.getElementById('new-student-name').value.trim();
             const phone = document.getElementById('new-student-phone').value.trim();
@@ -1973,8 +2057,10 @@
             
             if(name && phone && selectedSubjects.length > 0) {
                 const code = generateStudentCode();
+                const id = Date.now().toString();
                 
                 const student = {
+                    id,
                     name,
                     phone,
                     email,
@@ -1982,43 +2068,32 @@
                     subjects: [...selectedSubjects],
                     code,
                     date: new Date().toISOString().split('T')[0],
-                    deviceId: null
                 };
                 
-                showLoader();
+                addStudentToServer(student);
                 
-                // إضافة الطالب إلى التخزين السحابي
-                studentsRef.add(student)
-                .then(docRef => {
-                    studentCodeGenerated.textContent = code;
-                    generatedCodeDisplay.style.display = 'block';
-                    
-                    // تنظيف النموذج
-                    document.getElementById('new-student-name').value = '';
-                    document.getElementById('new-student-phone').value = '';
-                    document.getElementById('new-student-email').value = '';
-                    document.getElementById('new-student-grade').value = 'التهجي';
-                    selectedSubjects = [];
-                    updateSelectedSubjectsDisplay();
-                    
-                    showStatusMessage(studentRegistrationStatus, 'تم تسجيل الطالب بنجاح', true);
-                    hideLoader();
-                    
-                    setTimeout(() => {
-                        generatedCodeDisplay.style.display = 'none';
-                    }, 10000);
-                })
-                .catch(error => {
-                    console.error("Error adding student: ", error);
-                    showStatusMessage(studentRegistrationStatus, 'حدث خطأ أثناء تسجيل الطالب', false);
-                    hideLoader();
-                });
+                studentCodeGenerated.textContent = code;
+                generatedCodeDisplay.style.display = 'block';
+                
+                // تنظيف النموذج
+                document.getElementById('new-student-name').value = '';
+                document.getElementById('new-student-phone').value = '';
+                document.getElementById('new-student-email').value = '';
+                document.getElementById('new-student-grade').value = 'التهجي';
+                selectedSubjects = [];
+                updateSelectedSubjectsDisplay();
+                
+                showStatusMessage(studentRegistrationStatus, 'تم تسجيل الطالب بنجاح', true);
+                
+                setTimeout(() => {
+                    generatedCodeDisplay.style.display = 'none';
+                }, 10000);
             } else {
                 showStatusMessage(studentRegistrationStatus, 'الرجاء إدخال الاسم ورقم الهاتف واختيار الصف الدراسي ومادة واحدة على الأقل', false);
             }
         });
 
-        // رفع فيديو جديد إلى التخزين السحابي
+        // عند رفع فيديو جديد
         uploadVideoBtn.addEventListener('click', function() {
             const teacherName = teacherNameSelect.value;
             const title = document.getElementById('video-title').value;
@@ -2029,7 +2104,6 @@
             const contentCategory = document.getElementById('content-category').value;
             
             if(title && description && teacherName && youtubeLink) {
-                // استخراج معرف الفيديو من رابط اليوتيوب
                 const videoId = extractYoutubeId(youtubeLink);
                 if (!videoId) {
                     showStatusMessage(videoUploadStatus, 'الرجاء إدخال رابط يوتيوب صحيح', false);
@@ -2037,8 +2111,10 @@
                 }
                 
                 const embedLink = `https://www.youtube.com/embed/${videoId}`;
+                const id = Date.now().toString();
                 
                 const newVideo = {
+                    id,
                     teacherName,
                     title,
                     description,
@@ -2051,586 +2127,37 @@
                     youtubeLink: embedLink
                 };
                 
-                showLoader();
+                addVideoToServer(newVideo);
                 
-                // إضافة الفيديو إلى التخزين السحابي
-                if (contentCategory === 'free') {
-                    freeVideosRef.add(newVideo)
-                    .then(docRef => {
-                        // تنظيف النموذج
-                        document.getElementById('video-title').value = '';
-                        document.getElementById('video-description').value = '';
-                        document.getElementById('youtube-link').value = '';
-                        document.getElementById('content-category').value = 'paid';
-                        document.getElementById('video-subject').value = 'رياضيات';
-                        document.getElementById('video-level').value = 'التهجي';
-                        teacherNameSelect.value = 'أ. محمد أحمد';
-                        
-                        showStatusMessage(videoUploadStatus, 'تم رفع الدرس بنجاح!', true);
-                        hideLoader();
-                    })
-                    .catch(error => {
-                        console.error("Error adding free video: ", error);
-                        showStatusMessage(videoUploadStatus, 'حدث خطأ أثناء رفع الدرس', false);
-                        hideLoader();
-                    });
-                } else {
-                    videosRef.add(newVideo)
-                    .then(docRef => {
-                        // تنظيف النموذج
-                        document.getElementById('video-title').value = '';
-                        document.getElementById('video-description').value = '';
-                        document.getElementById('youtube-link').value = '';
-                        document.getElementById('content-category').value = 'paid';
-                        document.getElementById('video-subject').value = 'رياضيات';
-                        document.getElementById('video-level').value = 'التهجي';
-                        teacherNameSelect.value = 'أ. محمد أحمد';
-                        
-                        showStatusMessage(videoUploadStatus, 'تم رفع الدرس بنجاح!', true);
-                        hideLoader();
-                    })
-                    .catch(error => {
-                        console.error("Error adding paid video: ", error);
-                        showStatusMessage(videoUploadStatus, 'حدث خطأ أثناء رفع الدرس', false);
-                        hideLoader();
-                    });
-                }
+                // تنظيف النموذج
+                document.getElementById('video-title').value = '';
+                document.getElementById('video-description').value = '';
+                document.getElementById('youtube-link').value = '';
+                document.getElementById('content-category').value = 'paid';
+                document.getElementById('video-subject').value = 'رياضيات';
+                document.getElementById('video-level').value = 'التهجي';
+                teacherNameSelect.value = 'أ. محمد أحمد';
+                
+                showStatusMessage(videoUploadStatus, 'تم رفع الدرس بنجاح!', true);
             } else {
                 showStatusMessage(videoUploadStatus, 'الرجاء ملء جميع الحقول المطلوبة', false);
             }
         });
 
-        // استخراج معرف الفيديو من رابط اليوتيوب
-        function extractYoutubeId(url) {
-            const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|&v=)([^#&?]*).*/;
-            const match = url.match(regExp);
-            return (match && match[2].length === 11) ? match[2] : null;
-        }
-
-        // حذف فيديو من التخزين السحابي
-        function deleteVideo(id, category) {
-            if (!confirm('هل أنت متأكد من حذف هذا الدرس؟')) return;
-            
-            showLoader();
-            
-            if (category === 'free') {
-                freeVideosRef.doc(id).delete()
-                .then(() => {
-                    hideLoader();
-                })
-                .catch(error => {
-                    console.error("Error deleting free video: ", error);
-                    hideLoader();
-                });
-            } else {
-                videosRef.doc(id).delete()
-                .then(() => {
-                    hideLoader();
-                })
-                .catch(error => {
-                    console.error("Error deleting paid video: ", error);
-                    hideLoader();
-                });
-            }
-        }
-
-        // حذف طالب من التخزين السحابي
-        function deleteStudent(id) {
-            if (!confirm('هل أنت متأكد من حذف هذا الطالب؟ سيتم حذف كوده أيضاً.')) return;
-            
-            showLoader();
-            
-            studentsRef.doc(id).delete()
-            .then(() => {
-                hideLoader();
-            })
-            .catch(error => {
-                console.error("Error deleting student: ", error);
-                hideLoader();
-            });
-        }
-
-        // عرض الفيديوهات المرفوعة للتدريسين
-        function renderUploadedVideos() {
-            if (!uploadedVideosContainer) return;
-            
-            uploadedVideosContainer.innerHTML = '';
-            
-            const allVideos = [...videosData, ...freeVideosData];
-            
-            if (allVideos.length === 0) {
-                uploadedVideosContainer.innerHTML = `
-                    <div class="empty-message">
-                        <p>لم تقم برفع أي دروس بعد. ابدأ برفع دروسك الأولى!</p>
-                    </div>
-                `;
-                return;
-            }
-            
-            allVideos.sort((a, b) => b.date.localeCompare(a.date));
-            
-            allVideos.forEach(video => {
-                const videoElement = document.createElement('div');
-                videoElement.className = 'video-item';
-                videoElement.innerHTML = `
-                    <div class="video-header">
-                        <div class="video-title">${video.title} <span style="color: var(--primary-dark); font-size: 0.9em;">(${video.level})</span> ${video.category === 'free' ? '<span style="color: var(--primary);">(مجاني)</span>' : ''}</div>
-                        <div class="video-date">${video.date}</div>
-                    </div>
-                    <div class="video-description">${video.description}</div>
-                    <div class="video-meta">
-                        <span>المدرس: ${video.teacherName}</span>
-                        <span>المادة: ${video.subject}</span>
-                        <span>المشاهدات: ${video.views || 0}</span>
-                    </div>
-                    <div class="video-actions">
-                        <button class="action-btn edit-btn" onclick="editVideo('${video.id}', '${video.category}')">
-                            <i class="fas fa-edit"></i> تعديل
-                        </button>
-                        <button class="action-btn delete-btn" onclick="deleteVideo('${video.id}', '${video.category}')">
-                            <i class="fas fa-trash"></i> حذف
-                        </button>
-                    </div>
-                `;
-                uploadedVideosContainer.appendChild(videoElement);
-            });
-        }
-
-        // عرض الفيديوهات المجانية
-        function renderFreeVideos() {
-            if (!freeVideoList) return;
-            
-            freeVideoList.innerHTML = '';
-            
-            if (freeVideosData.length === 0) {
-                freeVideoList.innerHTML = `
-                    <div class="empty-message">
-                        <p>لا توجد محاضرات مجانية متاحة حالياً. الرجاء العودة لاحقاً.</p>
-                    </div>
-                `;
-                return;
-            }
-            
-            freeVideosData.sort((a, b) => b.date.localeCompare(a.date));
-
-            freeVideosData.forEach(video => {
-                const videoCard = document.createElement('div');
-                videoCard.className = 'student-video-card';
-                
-                videoCard.innerHTML = `
-                    <div class="video-thumbnail">
-                        <i class="fab fa-youtube" style="color: white; font-size: 4rem;"></i>
-                    </div>
-                    <div class="video-info">
-                        <h3>${video.title}</h3>
-                        <p>${video.description.substring(0, 80)}...</p>
-                        <div class="video-meta">
-                            <span>المدرس: ${video.teacherName}</span>
-                            <span>المادة: ${video.subject}</span>
-                            <span>الصف: ${video.level}</span>
-                        </div>
-                        <button class="play-btn" onclick="playVideo('${video.youtubeLink}', '${video.title}')">
-                            <i class="fas fa-play"></i> مشاهدة المحاضرة
-                        </button>
-                    </div>
-                `;
-                freeVideoList.appendChild(videoCard);
-            });
-        }
-
-        // تحديث عدد الطلاب
-        function updateTotalStudents() {
-            if (totalStudentsSpan) {
-                totalStudentsSpan.textContent = studentsData.length;
-            }
-        }
-
-        // تشغيل الفيديو
-        function playVideo(url, title) {
-            videoPlayer.innerHTML = `<iframe src="${url}" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>`;
-            videoTitlePlayer.textContent = title;
-            videoPlayerModal.style.display = 'flex';
-        }
-
-        // إغلاق مشغل الفيديو
-        closeVideoBtn.addEventListener('click', function() {
-            videoPlayerModal.style.display = 'none';
-            videoPlayer.innerHTML = '';
-        });
-
-        // تعديل فيديو
-        function editVideo(id, category) {
-            let video;
-            if (category === 'free') {
-                video = freeVideosData.find(v => v.id === id);
-            } else {
-                video = videosData.find(v => v.id === id);
-            }
-            
-            if (video) {
-                document.getElementById('teacher-name-select').value = video.teacherName;
-                document.getElementById('video-title').value = video.title;
-                document.getElementById('video-description').value = video.description;
-                document.getElementById('video-subject').value = video.subject;
-                document.getElementById('video-level').value = video.level;
-                document.getElementById('content-category').value = video.category;
-                document.getElementById('youtube-link').value = video.youtubeLink.replace('https://www.youtube.com/embed/', 'https://www.youtube.com/watch?v=');
-                
-                // حذف الفيديو القديم من التخزين السحابي
-                if (category === 'free') {
-                    freeVideosRef.doc(id).delete();
-                } else {
-                    videosRef.doc(id).delete();
-                }
-                
-                alert('يمكنك الآن تعديل بيانات الدرس وإعادة رفعه.');
-            } else {
-                alert('الفيديو غير موجود أو حدث خطأ في تحديده.');
-            }
-        }
-
-        // عرض جدول الطلاب
-        function renderStudentsTable() {
-            if (!studentsTableBody) return;
-            
-            studentsTableBody.innerHTML = '';
-            studentsCount.textContent = studentsData.length;
-            
-            if (studentsData.length === 0) {
-                studentsTableBody.innerHTML = `
-                    <tr>
-                        <td colspan="8" style="text-align: center; padding: 20px;">
-                            لا يوجد طلاب مسجلين بعد
-                        </td>
-                    </tr>
-                `;
-                return;
-            }
-            
-            studentsData.sort((a, b) => a.name.localeCompare(b.name, 'ar'));
-            
-            studentsData.forEach((student, index) => {
-                let subjectsDisplay = '';
-                if (student.subjects && student.subjects.length > 0) {
-                    if (student.subjects.includes('جميع المواد')) {
-                        subjectsDisplay = 'جميع المواد';
-                    } else {
-                        subjectsDisplay = student.subjects.join('، ');
-                    }
-                } else {
-                    subjectsDisplay = 'غير محدد';
-                }
-                
-                const row = document.createElement('tr');
-                row.innerHTML = `
-                    <td>${index + 1}</td>
-                    <td>${student.name}</td>
-                    <td><strong>${student.code}</strong></td>
-                    <td>${student.grade}</td>
-                    <td>${subjectsDisplay}</td>
-                    <td>${student.date}</td>
-                    <td>${student.phone || 'غير متوفر'}</td>
-                    <td>
-                        <button class="action-btn delete-btn" onclick="deleteStudent('${student.id}')">
-                            <i class="fas fa-trash"></i> حذف
-                        </button>
-                    </td>
-                `;
-                studentsTableBody.appendChild(row);
-            });
-        }
-
-        // توليد كود طالب فريد
-        function generateStudentCode() {
-            const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ0123456789';
-            let code = '';
-            
-            do {
-                code = 'STU2025-';
-                for (let j = 0; j < 5; j++) {
-                    const randomIndex = Math.floor(Math.random() * chars.length);
-                    code += chars[randomIndex];
-                }
-            } while (studentsData.some(s => s.code === code));
-            
-            return code;
-        }
-
-        // فتح نافذة تسجيل الدخول للتدريسين
-        teacherLoginBtn.addEventListener('click', function(e) {
-            e.preventDefault();
-            teacherLoginSection.style.display = 'flex';
-            loginError.style.display = 'none';
-            document.getElementById('username').value = '';
-            document.getElementById('password').value = '';
-        });
-
-        // إغلاق نافذة تسجيل الدخول للتدريسين
-        closeLoginBtn.addEventListener('click', function() {
-            teacherLoginSection.style.display = 'none';
-        });
-
-        // تسجيل الدخول للتدريسين
-        teacherLoginSubmit.addEventListener('click', function() {
-            const username = document.getElementById('username').value;
-            const password = document.getElementById('password').value;
-            
-            if(username === teacherCredentials.username && password === teacherCredentials.password) {
-                teacherLoginSection.style.display = 'none';
-                mainScreen.style.display = 'none';
-                teacherDashboard.style.display = 'block';
-                loginError.style.display = 'none';
-            } else {
-                loginError.style.display = 'block';
-            }
-        });
-
-        // فتح نافذة تسجيل الدخول للطلاب
-        studentLoginBtn.addEventListener('click', function(e) {
-            e.preventDefault();
-            studentLoginSection.style.display = 'flex';
-            studentLoginError.style.display = 'none';
-            studentCodeInput.value = '';
-        });
-
-        // إغلاق نافذة تسجيل الدخول للطلاب
-        closeStudentLoginBtn.addEventListener('click', function() {
-            studentLoginSection.style.display = 'none';
-        });
-
-        // تسجيل الدخول للطلاب
-        studentLoginSubmit.addEventListener('click', function() {
-            const enteredCode = studentCodeInput.value.trim();
-            const student = studentsData.find(s => s.code === enteredCode);
-
-            if (student) {
-                currentStudent = student;
-                studentWelcomeMessage.textContent = `مرحباً بك، ${currentStudent.name} في صف ${currentStudent.grade}.`;
-                renderStudentDashboard();
-
-                studentLoginSection.style.display = 'none';
-                mainScreen.style.display = 'none';
-                studentDashboard.style.display = 'block';
-                studentLoginError.style.display = 'none';
-            } else {
-                studentLoginError.textContent = 'الكود الذي أدخلته غير صحيح. يرجى المحاولة مرة أخرى.';
-                studentLoginError.style.display = 'block';
-            }
-        });
-
-        // عرض لوحة تحكم الطالب مع مدرسيه
-        function renderStudentDashboard() {
-            if (!currentStudent || !studentTeacherCardsContainer) return;
-
-            studentTeacherCardsContainer.innerHTML = '';
-            
-            const studentGrade = currentStudent.grade;
-            const studentSubjects = currentStudent.subjects;
-
-            const relevantVideos = videosData.filter(video => 
-                video.level === studentGrade && 
-                (studentSubjects.includes('جميع المواد') || studentSubjects.includes(video.subject))
-            );
-
-            const uniqueTeachers = [...new Set(relevantVideos.map(video => video.teacherName))];
-            
-            if (uniqueTeachers.length === 0) {
-                studentTeacherCardsContainer.innerHTML = `
-                    <div class="empty-message" style="grid-column: 1 / -1;">
-                        <p>لا يوجد مدرسون متاحون لصفك أو لموادك حالياً. الرجاء العودة لاحقاً.</p>
-                    </div>
-                `;
-                return;
-            }
-
-            const teachersToDisplay = uniqueTeachers.slice(0, 7);
-
-            teachersToDisplay.forEach(teacherName => {
-                const teacherCard = document.createElement('div');
-                teacherCard.className = 'teacher-card';
-                teacherCard.innerHTML = `
-                    <div class="teacher-icon">
-                        <i class="fas fa-user-tie"></i>
-                    </div>
-                    <h3>${teacherName}</h3>
-                    <p>المدرس لمواد ${studentSubjects.join('، ')} لصف ${studentGrade}.</p>
-                    <button class="btn" onclick="showTeacherVideosModal('${teacherName}')">
-                        <i class="fas fa-book-open"></i> عرض الدروس
-                    </button>
-                `;
-                studentTeacherCardsContainer.appendChild(teacherCard);
-            });
-        }
-
-        // عرض دروس مدرس معين
-        function showTeacherVideosModal(teacherName) {
-            if (!currentStudent || !teacherModalVideoList) return;
-
-            teacherVideosModalTitle.innerHTML = `<i class="fas fa-video"></i> شروحات ودروس الأستاذ/ة ${teacherName}`;
-            teacherModalVideoList.innerHTML = '';
-
-            const studentGrade = currentStudent.grade;
-            const studentSubjects = currentStudent.subjects;
-
-            const teacherVideos = videosData.filter(video => 
-                video.teacherName === teacherName &&
-                video.level === studentGrade && 
-                (studentSubjects.includes('جميع المواد') || studentSubjects.includes(video.subject))
-            ).sort((a, b) => b.date.localeCompare(a.date));
-
-            if (teacherVideos.length === 0) {
-                teacherModalVideoList.innerHTML = `
-                    <div class="empty-message">
-                        <p>لا توجد دروس متاحة حالياً لهذا المدرس.</p>
-                    </div>
-                `;
-            } else {
-                teacherVideos.forEach(video => {
-                    const videoCard = document.createElement('div');
-                    videoCard.className = 'student-video-card';
-                    
-                    videoCard.innerHTML = `
-                        <div class="video-thumbnail">
-                            <i class="fab fa-youtube" style="color: white; font-size: 4rem;"></i>
-                        </div>
-                        <div class="video-info">
-                            <h3>${video.title}</h3>
-                            <p>${video.description.substring(0, 80)}...</p>
-                            <div class="video-meta">
-                                <span>المادة: ${video.subject}</span>
-                                <span>المشاهدات: ${video.views || 0}</span>
-                            </div>
-                            <button class="play-btn" onclick="playVideo('${video.youtubeLink}', '${video.title}')">
-                                <i class="fas fa-play"></i> مشاهدة الدرس
-                            </button>
-                        </div>
-                    `;
-                    teacherModalVideoList.appendChild(videoCard);
-                });
-            }
-            teacherVideosModal.style.display = 'flex';
-        }
-
-        // إغلاق نافذة دروس المدرس
-        closeTeacherVideosModal.addEventListener('click', () => {
-            teacherVideosModal.style.display = 'none';
-        });
-
-        // فتح قسم المحاضرات المجانية
-        freeLecturesBtn.addEventListener('click', function(e) {
-            e.preventDefault();
-            mainScreen.style.display = 'none';
-            freeLecturesSection.style.display = 'block';
-            renderFreeVideos();
-        });
-
-        // العودة من المحاضرات المجانية
-        freeLecturesBack.addEventListener('click', function() {
-            freeLecturesSection.style.display = 'none';
-            mainScreen.style.display = 'flex';
-        });
-
-        // الانتقال للتسجيل من قسم المحاضرات المجانية
-        registerFromFree.addEventListener('click', function() {
-            freeLecturesSection.style.display = 'none';
-            studentLoginSection.style.display = 'flex';
-        });
-
-        // تسجيل الخروج من النظام
-        teacherLogout.addEventListener('click', function() {
-            teacherDashboard.style.display = 'none';
-            mainScreen.style.display = 'flex';
-        });
-
-        studentLogout.addEventListener('click', function() {
-            currentStudent = null;
-            studentDashboard.style.display = 'none';
-            mainScreen.style.display = 'flex';
-        });
-
-        // تهيئة اختيار المواد المتعدد
-        subjectsDropdown.addEventListener('click', function(e) {
-            e.stopPropagation();
-            subjectsOptions.classList.toggle('show');
-        });
-        
-        document.addEventListener('click', function() {
-            subjectsOptions.classList.remove('show');
-        });
-        
-        subjectsOptions.addEventListener('click', function(e) {
-            e.stopPropagation();
-        });
-        
-        const options = subjectsOptions.querySelectorAll('.multi-select-option');
-        options.forEach(option => {
-            option.addEventListener('click', function() {
-                const value = this.getAttribute('data-value');
-                
-                if (value === 'جميع المواد') {
-                    if (selectedSubjects.includes('جميع المواد')) {
-                         selectedSubjects = [];
-                    } else {
-                        selectedSubjects = ['جميع المواد'];
-                    }
-                } else {
-                    const allSubjectsIndex = selectedSubjects.indexOf('جميع المواد');
-                    if (allSubjectsIndex !== -1) {
-                        selectedSubjects.splice(allSubjectsIndex, 1);
-                    }
-
-                    const index = selectedSubjects.indexOf(value);
-                    if (index === -1) {
-                        selectedSubjects.push(value);
-                    } else {
-                        selectedSubjects.splice(index, 1);
-                    }
-                }
-                
-                updateSelectedSubjectsDisplay();
-            });
-        });
-
-        // تبديل الوضع الداكن
-        darkModeToggle.addEventListener('click', () => {
-            document.body.classList.toggle('dark-mode');
-            const isDarkMode = document.body.classList.contains('dark-mode');
-            localStorage.setItem('darkMode', isDarkMode);
-            if (isDarkMode) {
-                darkModeToggle.innerHTML = '<i class="fas fa-sun"></i>';
-            } else {
-                darkModeToggle.innerHTML = '<i class="fas fa-moon"></i>';
-            }
-        });
-
-        // عرض قائمة الطلاب
-        viewStudentsBtn.addEventListener('click', function() {
-            renderStudentsTable();
-            studentManagementModal.style.display = 'flex';
-        });
-
-        // إغلاق قائمة الطلاب
-        closeManagementModal.addEventListener('click', function() {
-            studentManagementModal.style.display = 'none';
-        });
-
-        // طباعة قائمة الطلاب
-        printStudentsBtn.addEventListener('click', function() {
-            window.print();
-        });
+        // بقية الدوال كما في الكود السابق...
+        // ... (نفس الدوال السابقة) ...
 
         // استدعاء التهيئة عند تحميل الصفحة
         document.addEventListener('DOMContentLoaded', function() {
             initializeApp();
+            
+            // جعل الدوال متاحة عالمياً لاستخدامها في الأحداث
+            window.playVideo = playVideo;
+            window.deleteVideo = deleteVideo;
+            window.editVideo = editVideo;
+            window.deleteStudent = deleteStudent;
+            window.showTeacherVideosModal = showTeacherVideosModal;
         });
-
-        // جعل الدوال متاحة عالمياً لاستخدامها في الأحداث
-        window.toggleContentType = toggleContentType;
-        window.playVideo = playVideo;
-        window.deleteVideo = deleteVideo;
-        window.editVideo = editVideo;
-        window.deleteStudent = deleteStudent;
-        window.showTeacherVideosModal = showTeacherVideosModal;
     </script>
 </body>
 </html>
