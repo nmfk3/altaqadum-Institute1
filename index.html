@@ -1253,6 +1253,59 @@
             background-color: var(--light-gray);
             margin-top: auto;
         }
+        
+        /* إضافة أنماط للطلاب */
+        .student-card {
+            background-color: var(--light-gray);
+            border-radius: 12px;
+            padding: 15px;
+            margin-bottom: 15px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .student-info {
+            flex: 1;
+        }
+        
+        .student-name {
+            font-weight: 600;
+            color: var(--primary);
+            margin-bottom: 5px;
+        }
+        
+        .student-details {
+            display: flex;
+            gap: 15px;
+            color: #666;
+            font-size: 0.9rem;
+        }
+        
+        .student-actions {
+            display: flex;
+            gap: 10px;
+        }
+        
+        .edit-student-form {
+            background-color: var(--light-gray);
+            border-radius: 12px;
+            padding: 20px;
+            margin-top: 15px;
+        }
+        
+        .edit-student-form .form-row {
+            margin-bottom: 15px;
+        }
+        
+        /* تحسينات للوضع الداكن */
+        body.dark-mode .student-card {
+            background-color: var(--dark-light-gray);
+        }
+        
+        body.dark-mode .student-name {
+            color: var(--primary-light);
+        }
     </style>
 </head>
 <body>
@@ -1766,6 +1819,8 @@
         let selectedSubjects = [];
         let currentStudent = null;
         let socket = null;
+        let currentEditingStudentId = null;
+        let currentEditingVideoId = null;
         
         // عناصر DOM
         const mainScreen = document.getElementById('main-screen');
@@ -1910,6 +1965,15 @@
                     updateUI();
                     break;
                     
+                case 'studentUpdated':
+                    const studentIndex = studentsData.findIndex(s => s.id === data.student.id);
+                    if (studentIndex !== -1) {
+                        studentsData[studentIndex] = data.student;
+                        saveLocalData();
+                        updateUI();
+                    }
+                    break;
+                    
                 case 'videoAdded':
                     if (data.video.category === 'free') {
                         freeVideosData.push(data.video);
@@ -1918,6 +1982,16 @@
                     }
                     saveLocalData();
                     updateUI();
+                    break;
+                    
+                case 'videoUpdated':
+                    let videoArray = data.video.category === 'free' ? freeVideosData : videosData;
+                    const videoIndex = videoArray.findIndex(v => v.id === data.video.id);
+                    if (videoIndex !== -1) {
+                        videoArray[videoIndex] = data.video;
+                        saveLocalData();
+                        updateUI();
+                    }
                     break;
                     
                 case 'studentDeleted':
@@ -1997,6 +2071,23 @@
             }
         }
 
+        // إرسال طلب تحديث طالب إلى الخادم
+        function updateStudentOnServer(student) {
+            if (socket && socket.readyState === WebSocket.OPEN) {
+                socket.send(JSON.stringify({
+                    action: 'updateStudent',
+                    student: student
+                }));
+            } else {
+                // إذا لم يكن هناك اتصال، تحديث الطالب محلياً
+                const index = studentsData.findIndex(s => s.id === student.id);
+                if (index !== -1) {
+                    studentsData[index] = student;
+                    saveLocalData();
+                }
+            }
+        }
+
         // إرسال طلب إضافة فيديو إلى الخادم
         function addVideoToServer(video) {
             if (socket && socket.readyState === WebSocket.OPEN) {
@@ -2012,6 +2103,24 @@
                     videosData.push(video);
                 }
                 saveLocalData();
+            }
+        }
+
+        // إرسال طلب تحديث فيديو إلى الخادم
+        function updateVideoOnServer(video) {
+            if (socket && socket.readyState === WebSocket.OPEN) {
+                socket.send(JSON.stringify({
+                    action: 'updateVideo',
+                    video: video
+                }));
+            } else {
+                // إذا لم يكن هناك اتصال، تحديث الفيديو محلياً
+                let videoArray = video.category === 'free' ? freeVideosData : videosData;
+                const index = videoArray.findIndex(v => v.id === video.id);
+                if (index !== -1) {
+                    videoArray[index] = video;
+                    saveLocalData();
+                }
             }
         }
 
@@ -2141,6 +2250,9 @@
                     <td>${student.date}</td>
                     <td>${student.phone}</td>
                     <td>
+                        <button class="action-btn edit-btn" onclick="editStudent('${student.id}')">
+                            <i class="fas fa-edit"></i> تعديل
+                        </button>
                         <button class="action-btn delete-btn" onclick="deleteStudent('${student.id}')">
                             <i class="fas fa-trash"></i> حذف
                         </button>
@@ -2183,7 +2295,13 @@
 
         // توليد كود الطالب
         function generateStudentCode() {
-            return 'STD' + Math.floor(1000 + Math.random() * 9000);
+            // تأكد من أن الكود فريد
+            let code;
+            do {
+                code = 'STD' + Math.floor(1000 + Math.random() * 9000);
+            } while (studentsData.some(student => student.code === code));
+            
+            return code;
         }
 
         // استخراج معرف فيديو يوتيوب من الرابط
@@ -2223,15 +2341,153 @@
             }
         }
 
-        // تعديل الفيديو (دالة تجريبية)
+        // تعديل الفيديو
         function editVideo(videoId) {
-            alert('تعديل الفيديو ' + videoId + ' - هذه الوظيفة قيد التطوير');
+            const video = videosData.find(v => v.id === videoId);
+            if (!video) return;
+            
+            // ملء النموذج ببيانات الفيديو
+            document.getElementById('teacher-name-select').value = video.teacherName;
+            document.getElementById('video-title').value = video.title;
+            document.getElementById('video-description').value = video.description;
+            document.getElementById('youtube-link').value = `https://www.youtube.com/watch?v=${video.youtubeLink.split('/').pop()}`;
+            document.getElementById('content-category').value = video.category;
+            document.getElementById('video-subject').value = video.subject;
+            document.getElementById('video-level').value = video.level;
+            
+            // تغيير نص زر الرفع إلى "تحديث"
+            uploadVideoBtn.innerHTML = '<i class="fas fa-sync-alt"></i> تحديث الدرس';
+            uploadVideoBtn.onclick = function() {
+                updateVideo(videoId);
+            };
+            
+            // تمرير للقسم
+            document.querySelector('.card-content').scrollIntoView({ behavior: 'smooth' });
+        }
+
+        // تحديث بيانات الفيديو
+        function updateVideo(videoId) {
+            const video = videosData.find(v => v.id === videoId);
+            if (!video) return;
+            
+            const teacherName = teacherNameSelect.value;
+            const title = document.getElementById('video-title').value;
+            const description = document.getElementById('video-description').value;
+            const subject = document.getElementById('video-subject').value;
+            const level = document.getElementById('video-level').value;
+            const youtubeLink = document.getElementById('youtube-link').value;
+            const contentCategory = document.getElementById('content-category').value;
+            
+            if(title && description && teacherName && youtubeLink) {
+                const videoId = extractYoutubeId(youtubeLink);
+                if (!videoId) {
+                    showStatusMessage(videoUploadStatus, 'الرجاء إدخال رابط يوتيوب صحيح', false);
+                    return;
+                }
+                
+                const embedLink = `https://www.youtube.com/embed/${videoId}`;
+                
+                // تحديث بيانات الفيديو
+                video.teacherName = teacherName;
+                video.title = title;
+                video.description = description;
+                video.subject = subject;
+                video.level = level;
+                video.youtubeLink = embedLink;
+                video.category = contentCategory;
+                
+                updateVideoOnServer(video);
+                
+                // تنظيف النموذج
+                document.getElementById('video-title').value = '';
+                document.getElementById('video-description').value = '';
+                document.getElementById('youtube-link').value = '';
+                document.getElementById('content-category').value = 'paid';
+                document.getElementById('video-subject').value = 'رياضيات';
+                document.getElementById('video-level').value = 'التهجي';
+                teacherNameSelect.value = 'أ. محمد أحمد';
+                
+                // إعادة زر الرفع إلى حالته الأصلية
+                uploadVideoBtn.innerHTML = '<i class="fas fa-upload"></i> رفع الدرس';
+                uploadVideoBtn.onclick = function() {
+                    uploadNewVideo();
+                };
+                
+                showStatusMessage(videoUploadStatus, 'تم تحديث الدرس بنجاح!', true);
+            } else {
+                showStatusMessage(videoUploadStatus, 'الرجاء ملء جميع الحقول المطلوبة', false);
+            }
         }
 
         // حذف الطالب
         function deleteStudent(studentId) {
             if (confirm('هل أنت متأكد من حذف هذا الطالب؟')) {
                 deleteStudentOnServer(studentId);
+            }
+        }
+
+        // تعديل الطالب
+        function editStudent(studentId) {
+            const student = studentsData.find(s => s.id === studentId);
+            if (!student) return;
+            
+            // ملء النموذج ببيانات الطالب
+            document.getElementById('new-student-name').value = student.name;
+            document.getElementById('new-student-phone').value = student.phone;
+            document.getElementById('new-student-email').value = student.email || '';
+            document.getElementById('new-student-grade').value = student.grade;
+            
+            // تحديث المواد المختارة
+            selectedSubjects = [...student.subjects];
+            updateSelectedSubjectsDisplay();
+            
+            // تغيير نص زر التسجيل إلى "تحديث"
+            registerNewStudentBtn.innerHTML = '<i class="fas fa-sync-alt"></i> تحديث بيانات الطالب';
+            registerNewStudentBtn.onclick = function() {
+                updateStudent(studentId);
+            };
+            
+            // تمرير للقسم
+            document.querySelector('.card-content').scrollIntoView({ behavior: 'smooth' });
+        }
+
+        // تحديث بيانات الطالب
+        function updateStudent(studentId) {
+            const student = studentsData.find(s => s.id === studentId);
+            if (!student) return;
+            
+            const name = document.getElementById('new-student-name').value.trim();
+            const phone = document.getElementById('new-student-phone').value.trim();
+            const email = document.getElementById('new-student-email').value.trim();
+            const grade = document.getElementById('new-student-grade').value;
+            
+            if(name && phone && selectedSubjects.length > 0) {
+                // تحديث بيانات الطالب
+                student.name = name;
+                student.phone = phone;
+                student.email = email;
+                student.grade = grade;
+                student.subjects = [...selectedSubjects];
+                
+                updateStudentOnServer(student);
+                
+                // تنظيف النموذج
+                document.getElementById('new-student-name').value = '';
+                document.getElementById('new-student-phone').value = '';
+                document.getElementById('new-student-email').value = '';
+                document.getElementById('new-student-grade').value = 'التهجي';
+                selectedSubjects = [];
+                updateSelectedSubjectsDisplay();
+                
+                // إعادة زر التسجيل إلى حالته الأصلية
+                registerNewStudentBtn.innerHTML = '<i class="fas fa-user-plus"></i> تسجيل الطالب';
+                registerNewStudentBtn.onclick = function() {
+                    registerNewStudent();
+                };
+                
+                showStatusMessage(studentRegistrationStatus, 'تم تحديث بيانات الطالب بنجاح', true);
+            } else {
+                showStatusMessage(studentRegistrationStatus, 'الرجاء إدخال الاسم ورقم الهاتف واختيار الصف الدراسي ومادة واحدة على الأقل', false);
             }
         }
 
@@ -2424,100 +2680,106 @@
             });
             
             // عند تسجيل طالب جديد
-            registerNewStudentBtn.addEventListener('click', function() {
-                const name = document.getElementById('new-student-name').value.trim();
-                const phone = document.getElementById('new-student-phone').value.trim();
-                const email = document.getElementById('new-student-email').value.trim();
-                const grade = document.getElementById('new-student-grade').value;
-                
-                if(name && phone && selectedSubjects.length > 0) {
-                    const code = generateStudentCode();
-                    const id = Date.now().toString();
-                    
-                    const student = {
-                        id,
-                        name,
-                        phone,
-                        email,
-                        grade,
-                        subjects: [...selectedSubjects],
-                        code,
-                        date: new Date().toISOString().split('T')[0],
-                    };
-                    
-                    addStudentToServer(student);
-                    
-                    studentCodeGenerated.textContent = code;
-                    generatedCodeDisplay.style.display = 'block';
-                    
-                    // تنظيف النموذج
-                    document.getElementById('new-student-name').value = '';
-                    document.getElementById('new-student-phone').value = '';
-                    document.getElementById('new-student-email').value = '';
-                    document.getElementById('new-student-grade').value = 'التهجي';
-                    selectedSubjects = [];
-                    updateSelectedSubjectsDisplay();
-                    
-                    showStatusMessage(studentRegistrationStatus, 'تم تسجيل الطالب بنجاح', true);
-                    
-                    setTimeout(() => {
-                        generatedCodeDisplay.style.display = 'none';
-                    }, 10000);
-                } else {
-                    showStatusMessage(studentRegistrationStatus, 'الرجاء إدخال الاسم ورقم الهاتف واختيار الصف الدراسي ومادة واحدة على الأقل', false);
-                }
-            });
-
+            registerNewStudentBtn.addEventListener('click', registerNewStudent);
+            
             // عند رفع فيديو جديد
-            uploadVideoBtn.addEventListener('click', function() {
-                const teacherName = teacherNameSelect.value;
-                const title = document.getElementById('video-title').value;
-                const description = document.getElementById('video-description').value;
-                const subject = document.getElementById('video-subject').value;
-                const level = document.getElementById('video-level').value;
-                const youtubeLink = document.getElementById('youtube-link').value;
-                const contentCategory = document.getElementById('content-category').value;
+            uploadVideoBtn.addEventListener('click', uploadNewVideo);
+        }
+        
+        // تسجيل طالب جديد
+        function registerNewStudent() {
+            const name = document.getElementById('new-student-name').value.trim();
+            const phone = document.getElementById('new-student-phone').value.trim();
+            const email = document.getElementById('new-student-email').value.trim();
+            const grade = document.getElementById('new-student-grade').value;
+            
+            if(name && phone && selectedSubjects.length > 0) {
+                const code = generateStudentCode();
+                const id = Date.now().toString();
                 
-                if(title && description && teacherName && youtubeLink) {
-                    const videoId = extractYoutubeId(youtubeLink);
-                    if (!videoId) {
-                        showStatusMessage(videoUploadStatus, 'الرجاء إدخال رابط يوتيوب صحيح', false);
-                        return;
-                    }
-                    
-                    const embedLink = `https://www.youtube.com/embed/${videoId}`;
-                    const id = Date.now().toString();
-                    
-                    const newVideo = {
-                        id,
-                        teacherName,
-                        title,
-                        description,
-                        subject,
-                        level,
-                        date: new Date().toISOString().split('T')[0],
-                        views: 0,
-                        type: "youtube",
-                        category: contentCategory,
-                        youtubeLink: embedLink
-                    };
-                    
-                    addVideoToServer(newVideo);
-                    
-                    // تنظيف النموذج
-                    document.getElementById('video-title').value = '';
-                    document.getElementById('video-description').value = '';
-                    document.getElementById('youtube-link').value = '';
-                    document.getElementById('content-category').value = 'paid';
-                    document.getElementById('video-subject').value = 'رياضيات';
-                    document.getElementById('video-level').value = 'التهجي';
-                    teacherNameSelect.value = 'أ. محمد أحمد';
-                    
-                    showStatusMessage(videoUploadStatus, 'تم رفع الدرس بنجاح!', true);
-                } else {
-                    showStatusMessage(videoUploadStatus, 'الرجاء ملء جميع الحقول المطلوبة', false);
+                const student = {
+                    id,
+                    name,
+                    phone,
+                    email,
+                    grade,
+                    subjects: [...selectedSubjects],
+                    code,
+                    date: new Date().toISOString().split('T')[0],
+                };
+                
+                addStudentToServer(student);
+                
+                studentCodeGenerated.textContent = code;
+                generatedCodeDisplay.style.display = 'block';
+                
+                // تنظيف النموذج
+                document.getElementById('new-student-name').value = '';
+                document.getElementById('new-student-phone').value = '';
+                document.getElementById('new-student-email').value = '';
+                document.getElementById('new-student-grade').value = 'التهجي';
+                selectedSubjects = [];
+                updateSelectedSubjectsDisplay();
+                
+                showStatusMessage(studentRegistrationStatus, 'تم تسجيل الطالب بنجاح', true);
+                
+                setTimeout(() => {
+                    generatedCodeDisplay.style.display = 'none';
+                }, 10000);
+            } else {
+                showStatusMessage(studentRegistrationStatus, 'الرجاء إدخال الاسم ورقم الهاتف واختيار الصف الدراسي ومادة واحدة على الأقل', false);
+            }
+        }
+        
+        // رفع فيديو جديد
+        function uploadNewVideo() {
+            const teacherName = teacherNameSelect.value;
+            const title = document.getElementById('video-title').value;
+            const description = document.getElementById('video-description').value;
+            const subject = document.getElementById('video-subject').value;
+            const level = document.getElementById('video-level').value;
+            const youtubeLink = document.getElementById('youtube-link').value;
+            const contentCategory = document.getElementById('content-category').value;
+            
+            if(title && description && teacherName && youtubeLink) {
+                const videoId = extractYoutubeId(youtubeLink);
+                if (!videoId) {
+                    showStatusMessage(videoUploadStatus, 'الرجاء إدخال رابط يوتيوب صحيح', false);
+                    return;
                 }
-            });
+                
+                const embedLink = `https://www.youtube.com/embed/${videoId}`;
+                const id = Date.now().toString();
+                
+                const newVideo = {
+                    id,
+                    teacherName,
+                    title,
+                    description,
+                    subject,
+                    level,
+                    date: new Date().toISOString().split('T')[0],
+                    views: 0,
+                    type: "youtube",
+                    category: contentCategory,
+                    youtubeLink: embedLink
+                };
+                
+                addVideoToServer(newVideo);
+                
+                // تنظيف النموذج
+                document.getElementById('video-title').value = '';
+                document.getElementById('video-description').value = '';
+                document.getElementById('youtube-link').value = '';
+                document.getElementById('content-category').value = 'paid';
+                document.getElementById('video-subject').value = 'رياضيات';
+                document.getElementById('video-level').value = 'التهجي';
+                teacherNameSelect.value = 'أ. محمد أحمد';
+                
+                showStatusMessage(videoUploadStatus, 'تم رفع الدرس بنجاح!', true);
+            } else {
+                showStatusMessage(videoUploadStatus, 'الرجاء ملء جميع الحقول المطلوبة', false);
+            }
         }
         
         // تحديث عرض المواد المختارة
@@ -2548,6 +2810,7 @@
             window.deleteVideo = deleteVideo;
             window.editVideo = editVideo;
             window.deleteStudent = deleteStudent;
+            window.editStudent = editStudent;
             window.showTeacherVideosModal = showTeacherVideosModal;
         });
     </script>
