@@ -782,6 +782,71 @@
             position: relative;
         }
         
+        .video-player-modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.9);
+            z-index: 3000;
+            justify-content: center;
+            align-items: center;
+        }
+        
+        .video-player-container {
+            background-color: black;
+            border-radius: 10px;
+            width: 90%;
+            max-width: 900px;
+            overflow: hidden;
+            position: relative;
+        }
+        
+        .video-player {
+            width: 100%;
+            height: 0;
+            padding-bottom: 56.25%; /* 16:9 Aspect Ratio */
+            position: relative;
+        }
+        
+        .video-player iframe {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            border: none;
+        }
+        
+        .close-video-btn {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background-color: rgba(0,0,0,0.7);
+            color: white;
+            border: none;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            font-size: 1.5rem;
+            cursor: pointer;
+            z-index: 10;
+        }
+        
+        .video-title-player {
+            position: absolute;
+            bottom: 10px;
+            left: 0;
+            width: 100%;
+            text-align: center;
+            color: white;
+            background: rgba(0,0,0,0.7);
+            padding: 10px;
+            z-index: 5;
+        }
+        
         .modal-header {
             display: flex;
             justify-content: space-between;
@@ -1154,6 +1219,10 @@
                 display: block;
                 overflow-x: auto;
             }
+            
+            .video-player-container {
+                width: 95%;
+            }
         }
         
         footer {
@@ -1392,19 +1461,6 @@
                             </div>
                             
                             <div class="form-group">
-                                <label>نوع المحتوى</label>
-                                <select id="content-type" class="form-control" onchange="toggleContentType()">
-                                    <option value="file">رفع ملف من الجهاز</option>
-                                    <option value="youtube">رابط يوتيوب</option>
-                                </select>
-                            </div>
-                            
-                            <div class="form-group" id="file-upload-group">
-                                <label for="video-file">اختر ملف الفيديو</label>
-                                <input type="file" id="video-file" accept="video/*">
-                            </div>
-                            
-                            <div class="form-group" id="youtube-link-group" style="display: none;">
                                 <label for="youtube-link">رابط يوتيوب</label>
                                 <input type="url" id="youtube-link" placeholder="أدخل رابط فيديو يوتيوب">
                             </div>
@@ -1661,6 +1717,16 @@
         </div>
     </div>
 
+    <div class="video-player-modal" id="video-player-modal">
+        <div class="video-player-container">
+            <button class="close-video-btn" id="close-video-btn">&times;</button>
+            <div class="video-player" id="video-player">
+                <!-- سيتم إضافة مشغل الفيديو هنا ديناميكياً -->
+            </div>
+            <div class="video-title-player" id="video-title-player"></div>
+        </div>
+    </div>
+
     <footer>
         <p>برمجة وتطوير: مهندس علي عبد الرحيم</p>
         <p>جميع الحقوق محفوظة &copy; 2025 معهد التقدم</p>
@@ -1724,6 +1790,10 @@
         const teacherModalVideoList = document.getElementById('teacher-modal-video-list');
         const studentRegistrationStatus = document.getElementById('student-registration-status');
         const videoUploadStatus = document.getElementById('video-upload-status');
+        const videoPlayerModal = document.getElementById('video-player-modal');
+        const closeVideoBtn = document.getElementById('close-video-btn');
+        const videoPlayer = document.getElementById('video-player');
+        const videoTitlePlayer = document.getElementById('video-title-player');
 
         // بيانات تسجيل الدخول للتدريسين
         const teacherCredentials = {
@@ -1738,6 +1808,9 @@
             renderFreeVideos();
             updateTotalStudents();
             
+            // إضافة مستخدمين وبيانات افتراضية
+            addDefaultData();
+            
             // Apply saved dark mode preference
             const savedDarkMode = localStorage.getItem('darkMode');
             if (savedDarkMode === 'true') {
@@ -1746,6 +1819,97 @@
             } else {
                 darkModeToggle.innerHTML = '<i class="fas fa-moon"></i>';
             }
+        }
+
+        // إضافة بيانات افتراضية للتجربة
+        function addDefaultData() {
+            if (studentsData.length === 0) {
+                studentsData.push({
+                    id: 1,
+                    name: "عمر عبد الله",
+                    phone: "07701234567",
+                    email: "omar@example.com",
+                    grade: "سادس ابتدائي",
+                    subjects: ["رياضيات", "لغة عربية"],
+                    code: "STU2025-12345",
+                    date: "2025-07-19"
+                });
+                
+                studentsData.push({
+                    id: 2,
+                    name: "سارة محمد",
+                    phone: "07707654321",
+                    email: "sara@example.com",
+                    grade: "اول متوسط",
+                    subjects: ["لغة إنجليزية", "العلوم"],
+                    code: "STU2025-67890",
+                    date: "2025-07-18"
+                });
+                
+                studentCodes.push("STU2025-12345", "STU2025-67890");
+            }
+            
+            if (videosData.length === 0) {
+                videosData.push({
+                    id: 1,
+                    teacherName: "أ. محمد أحمد",
+                    title: "الدرس الأول في الرياضيات",
+                    description: "شرح أساسيات الجبر للمبتدئين",
+                    subject: "رياضيات",
+                    level: "سادس ابتدائي",
+                    date: "2025-07-15",
+                    views: 24,
+                    type: "youtube",
+                    category: "paid",
+                    youtubeLink: "https://www.youtube.com/embed/dQw4w9WgXcQ"
+                });
+                
+                videosData.push({
+                    id: 2,
+                    teacherName: "أ. سارة علي",
+                    title: "قواعد اللغة العربية",
+                    description: "شرح شامل لقواعد النحو الأساسية",
+                    subject: "لغة عربية",
+                    level: "اول متوسط",
+                    date: "2025-07-16",
+                    views: 18,
+                    type: "youtube",
+                    category: "paid",
+                    youtubeLink: "https://www.youtube.com/embed/dQw4w9WgXcQ"
+                });
+            }
+            
+            if (freeVideosData.length === 0) {
+                freeVideosData.push({
+                    id: 100,
+                    teacherName: "أ. خالد محمود",
+                    title: "مقدمة في الفيزياء",
+                    description: "شرح مبسط لمبادئ الفيزياء الأساسية",
+                    subject: "فيزياء",
+                    level: "ثاني متوسط",
+                    date: "2025-07-10",
+                    views: 42,
+                    type: "youtube",
+                    category: "free",
+                    youtubeLink: "https://www.youtube.com/embed/dQw4w9WgXcQ"
+                });
+                
+                freeVideosData.push({
+                    id: 101,
+                    teacherName: "أ. ليلى فؤاد",
+                    title: "تعلم الإنجليزية بسهولة",
+                    description: "دروس أساسية في اللغة الإنجليزية للمبتدئين",
+                    subject: "لغة إنجليزية",
+                    level: "التهجي",
+                    date: "2025-07-12",
+                    views: 56,
+                    type: "youtube",
+                    category: "free",
+                    youtubeLink: "https://www.youtube.com/embed/dQw4w9WgXcQ"
+                });
+            }
+            
+            saveToLocalStorage();
         }
 
         // تحميل البيانات من localStorage
@@ -1807,18 +1971,6 @@
                 alert('حدث خطأ أثناء نسخ الكود');
             });
         });
-
-        // تبديل نوع المحتوى
-        function toggleContentType() {
-            const contentType = document.getElementById('content-type').value;
-            if (contentType === 'file') {
-                document.getElementById('file-upload-group').style.display = 'block';
-                document.getElementById('youtube-link-group').style.display = 'none';
-            } else {
-                document.getElementById('file-upload-group').style.display = 'none';
-                document.getElementById('youtube-link-group').style.display = 'block';
-            }
-        }
 
         // تحديث عرض المواد المختارة للطالب الجديد
         function updateSelectedSubjectsDisplay() {
@@ -1920,10 +2072,19 @@
             const description = document.getElementById('video-description').value;
             const subject = document.getElementById('video-subject').value;
             const level = document.getElementById('video-level').value;
-            const contentType = document.getElementById('content-type').value;
+            const youtubeLink = document.getElementById('youtube-link').value;
             const contentCategory = document.getElementById('content-category').value;
             
-            if(title && description && teacherName) {
+            if(title && description && teacherName && youtubeLink) {
+                // استخراج معرف الفيديو من رابط اليوتيوب
+                const videoId = extractYoutubeId(youtubeLink);
+                if (!videoId) {
+                    showStatusMessage(videoUploadStatus, 'الرجاء إدخال رابط يوتيوب صحيح', false);
+                    return;
+                }
+                
+                const embedLink = `https://www.youtube.com/embed/${videoId}`;
+                
                 const newVideo = {
                     id: Date.now(),
                     teacherName,
@@ -1933,29 +2094,10 @@
                     level,
                     date: new Date().toISOString().split('T')[0],
                     views: 0,
-                    rating: 0,
-                    type: contentType,
-                    category: contentCategory
+                    type: "youtube",
+                    category: contentCategory,
+                    youtubeLink: embedLink
                 };
-                
-                if (contentType === 'file') {
-                    const fileInput = document.getElementById('video-file');
-                    if (fileInput.files.length > 0) {
-                        newVideo.fileName = fileInput.files[0].name;
-                        newVideo.fileSize = (fileInput.files[0].size / (1024 * 1024)).toFixed(2) + ' MB';
-                    } else {
-                        showStatusMessage(videoUploadStatus, 'الرجاء اختيار ملف الفيديو', false);
-                        return;
-                    }
-                } else {
-                    const youtubeLink = document.getElementById('youtube-link').value;
-                    if (youtubeLink) {
-                        newVideo.youtubeLink = youtubeLink;
-                    } else {
-                        showStatusMessage(videoUploadStatus, 'الرجاء إدخال رابط يوتيوب صحيح', false);
-                        return;
-                    }
-                }
                 
                 if (contentCategory === 'free') {
                     freeVideosData.push(newVideo);
@@ -1970,10 +2112,7 @@
                 // Clear form fields
                 document.getElementById('video-title').value = '';
                 document.getElementById('video-description').value = '';
-                document.getElementById('video-file').value = '';
                 document.getElementById('youtube-link').value = '';
-                document.getElementById('content-type').value = 'file';
-                toggleContentType();
                 document.getElementById('content-category').value = 'paid';
                 document.getElementById('video-subject').value = 'رياضيات';
                 document.getElementById('video-level').value = 'التهجي';
@@ -1984,6 +2123,13 @@
                 showStatusMessage(videoUploadStatus, 'الرجاء ملء جميع الحقول المطلوبة', false);
             }
         });
+
+        // استخراج معرف الفيديو من رابط اليوتيوب
+        function extractYoutubeId(url) {
+            const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|&v=)([^#&?]*).*/;
+            const match = url.match(regExp);
+            return (match && match[2].length === 11) ? match[2] : null;
+        }
 
         // حذف فيديو
         function deleteVideo(id) {
@@ -2092,16 +2238,9 @@
                 const videoCard = document.createElement('div');
                 videoCard.className = 'student-video-card';
                 
-                let thumbnailContent = '<i class="fas fa-play-circle"></i>';
-                if (video.type === 'youtube') {
-                    thumbnailContent = '<i class="fab fa-youtube" style="color: white;"></i>';
-                } else if (video.type === 'file') {
-                    thumbnailContent = '<i class="fas fa-file-video"></i>';
-                }
-                
                 videoCard.innerHTML = `
                     <div class="video-thumbnail">
-                        ${thumbnailContent}
+                        <i class="fab fa-youtube" style="color: white; font-size: 4rem;"></i>
                     </div>
                     <div class="video-info">
                         <h3>${video.title}</h3>
@@ -2111,7 +2250,7 @@
                             <span>المادة: ${video.subject}</span>
                             <span>الصف: ${video.level}</span>
                         </div>
-                        <button class="play-btn" onclick="watchVideo(${video.id}, true)">
+                        <button class="play-btn" onclick="playVideo('${video.youtubeLink}', '${video.title}')">
                             <i class="fas fa-play"></i> مشاهدة المحاضرة
                         </button>
                     </div>
@@ -2127,34 +2266,18 @@
             }
         }
 
-        // مشاهدة فيديو
-        function watchVideo(id, isFree = false) {
-            let video;
-            
-            if (isFree) {
-                video = freeVideosData.find(v => v.id === id);
-            } else {
-                video = videosData.find(v => v.id === id);
-            }
-            
-            if (video) {
-                if (video.type === 'youtube') {
-                    window.open(video.youtubeLink, '_blank');
-                } else {
-                    alert(`جاري تحميل الملف: ${video.fileName || 'غير متوفر'}\n\nحجم الملف: ${video.fileSize || 'غير متوفر'}\n\n(ملاحظة: هذا مجرد عرض، لا يتم تحميل الملف فعلياً في هذا الإصدار التجريبي).`);
-                }
-                video.views = (video.views || 0) + 1;
-                saveToLocalStorage();
-                renderUploadedVideos();
-                if (isFree) {
-                    renderFreeVideos();
-                } else if (currentStudent) {
-                    showTeacherVideosModal(video.teacherName);
-                }
-            } else {
-                alert("الفيديو غير موجود.");
-            }
+        // تشغيل الفيديو
+        function playVideo(url, title) {
+            videoPlayer.innerHTML = `<iframe src="${url}" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>`;
+            videoTitlePlayer.textContent = title;
+            videoPlayerModal.style.display = 'flex';
         }
+
+        // إغلاق مشغل الفيديو
+        closeVideoBtn.addEventListener('click', function() {
+            videoPlayerModal.style.display = 'none';
+            videoPlayer.innerHTML = '';
+        });
 
         // تعديل فيديو
         function editVideo(id) {
@@ -2171,16 +2294,8 @@
                 document.getElementById('video-description').value = video.description;
                 document.getElementById('video-subject').value = video.subject;
                 document.getElementById('video-level').value = video.level;
-                document.getElementById('content-type').value = video.type;
                 document.getElementById('content-category').value = video.category;
-                
-                if (video.type === 'youtube') {
-                    document.getElementById('youtube-link').value = video.youtubeLink || '';
-                    toggleContentType();
-                } else {
-                    document.getElementById('video-file').value = '';
-                    toggleContentType();
-                }
+                document.getElementById('youtube-link').value = video.youtubeLink.replace('https://www.youtube.com/embed/', 'https://www.youtube.com/watch?v=');
                 
                 deleteVideo(id);
                 
@@ -2390,16 +2505,9 @@
                     const videoCard = document.createElement('div');
                     videoCard.className = 'student-video-card';
                     
-                    let thumbnailContent = '<i class="fas fa-play-circle"></i>';
-                    if (video.type === 'youtube') {
-                        thumbnailContent = '<i class="fab fa-youtube" style="color: white;"></i>';
-                    } else if (video.type === 'file') {
-                        thumbnailContent = '<i class="fas fa-file-video"></i>';
-                    }
-                    
                     videoCard.innerHTML = `
                         <div class="video-thumbnail">
-                            ${thumbnailContent}
+                            <i class="fab fa-youtube" style="color: white; font-size: 4rem;"></i>
                         </div>
                         <div class="video-info">
                             <h3>${video.title}</h3>
@@ -2408,7 +2516,7 @@
                                 <span>المادة: ${video.subject}</span>
                                 <span>المشاهدات: ${video.views || 0}</span>
                             </div>
-                            <button class="play-btn" onclick="watchVideo(${video.id}, false)">
+                            <button class="play-btn" onclick="playVideo('${video.youtubeLink}', '${video.title}')">
                                 <i class="fas fa-play"></i> مشاهدة الدرس
                             </button>
                         </div>
@@ -2513,6 +2621,22 @@
             }
         });
 
+        // عرض قائمة الطلاب
+        viewStudentsBtn.addEventListener('click', function() {
+            renderStudentsTable();
+            studentManagementModal.style.display = 'flex';
+        });
+
+        // إغلاق قائمة الطلاب
+        closeManagementModal.addEventListener('click', function() {
+            studentManagementModal.style.display = 'none';
+        });
+
+        // طباعة قائمة الطلاب
+        printStudentsBtn.addEventListener('click', function() {
+            window.print();
+        });
+
         // استدعاء التهيئة عند تحميل الصفحة
         document.addEventListener('DOMContentLoaded', function() {
             initializeApp();
@@ -2520,7 +2644,7 @@
 
         // جعل الدوال متاحة عالمياً لاستخدامها في الأحداث
         window.toggleContentType = toggleContentType;
-        window.watchVideo = watchVideo;
+        window.playVideo = playVideo;
         window.deleteVideo = deleteVideo;
         window.editVideo = editVideo;
         window.deleteStudent = deleteStudent;
