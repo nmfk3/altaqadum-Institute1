@@ -2045,111 +2045,503 @@
             }
         }
 
-        // بقية الدوال كما في الكود السابق...
-        // ... (نفس الدوال السابقة) ...
+        // تحديث عدد الطلاب
+        function updateTotalStudents() {
+            totalStudentsSpan.textContent = studentsData.length;
+        }
 
-        // عند تسجيل طالب جديد
-        registerNewStudentBtn.addEventListener('click', function() {
-            const name = document.getElementById('new-student-name').value.trim();
-            const phone = document.getElementById('new-student-phone').value.trim();
-            const email = document.getElementById('new-student-email').value.trim();
-            const grade = document.getElementById('new-student-grade').value;
+        // عرض الفيديوهات المرفوعة
+        function renderUploadedVideos() {
+            // في هذا المثال، سنعرض فقط الفيديوهات المدفوعة (paid)
+            const teacherVideos = videosData.filter(video => video.category === 'paid');
             
-            if(name && phone && selectedSubjects.length > 0) {
-                const code = generateStudentCode();
-                const id = Date.now().toString();
-                
-                const student = {
-                    id,
-                    name,
-                    phone,
-                    email,
-                    grade,
-                    subjects: [...selectedSubjects],
-                    code,
-                    date: new Date().toISOString().split('T')[0],
-                };
-                
-                addStudentToServer(student);
-                
-                studentCodeGenerated.textContent = code;
-                generatedCodeDisplay.style.display = 'block';
-                
-                // تنظيف النموذج
-                document.getElementById('new-student-name').value = '';
-                document.getElementById('new-student-phone').value = '';
-                document.getElementById('new-student-email').value = '';
-                document.getElementById('new-student-grade').value = 'التهجي';
-                selectedSubjects = [];
-                updateSelectedSubjectsDisplay();
-                
-                showStatusMessage(studentRegistrationStatus, 'تم تسجيل الطالب بنجاح', true);
-                
-                setTimeout(() => {
-                    generatedCodeDisplay.style.display = 'none';
-                }, 10000);
-            } else {
-                showStatusMessage(studentRegistrationStatus, 'الرجاء إدخال الاسم ورقم الهاتف واختيار الصف الدراسي ومادة واحدة على الأقل', false);
+            if (teacherVideos.length === 0) {
+                uploadedVideosContainer.innerHTML = '<div class="empty-message"><p>لم تقم برفع أي دروس بعد. ابدأ برفع دروسك الأولى!</p></div>';
+                return;
             }
-        });
-
-        // عند رفع فيديو جديد
-        uploadVideoBtn.addEventListener('click', function() {
-            const teacherName = teacherNameSelect.value;
-            const title = document.getElementById('video-title').value;
-            const description = document.getElementById('video-description').value;
-            const subject = document.getElementById('video-subject').value;
-            const level = document.getElementById('video-level').value;
-            const youtubeLink = document.getElementById('youtube-link').value;
-            const contentCategory = document.getElementById('content-category').value;
             
-            if(title && description && teacherName && youtubeLink) {
-                const videoId = extractYoutubeId(youtubeLink);
-                if (!videoId) {
-                    showStatusMessage(videoUploadStatus, 'الرجاء إدخال رابط يوتيوب صحيح', false);
-                    return;
+            let html = '';
+            teacherVideos.forEach(video => {
+                html += `
+                <div class="video-item">
+                    <div class="video-header">
+                        <div class="video-title">${video.title}</div>
+                        <div class="video-date">${video.date}</div>
+                    </div>
+                    <div class="video-description">${video.description}</div>
+                    <div class="video-meta">
+                        <span>المادة: ${video.subject}</span>
+                        <span>الصف: ${video.level}</span>
+                    </div>
+                    <div class="video-actions">
+                        <button class="action-btn edit-btn" onclick="editVideo('${video.id}')">
+                            <i class="fas fa-edit"></i> تعديل
+                        </button>
+                        <button class="action-btn delete-btn" onclick="deleteVideo('${video.id}', 'paid')">
+                            <i class="fas fa-trash"></i> حذف
+                        </button>
+                    </div>
+                </div>
+                `;
+            });
+            
+            uploadedVideosContainer.innerHTML = html;
+        }
+
+        // عرض الفيديوهات المجانية
+        function renderFreeVideos() {
+            if (freeVideosData.length === 0) {
+                freeVideoList.innerHTML = '<div class="empty-message"><p>لا تتوفر محاضرات مجانية حالياً.</p></div>';
+                return;
+            }
+            
+            let html = '';
+            freeVideosData.forEach(video => {
+                html += `
+                <div class="student-video-card">
+                    <div class="video-thumbnail">
+                        <i class="fas fa-play-circle"></i>
+                    </div>
+                    <div class="video-info">
+                        <h3>${video.title}</h3>
+                        <p>${video.description}</p>
+                        <div class="video-meta">
+                            <span>${video.teacherName}</span>
+                            <span>${video.date}</span>
+                        </div>
+                        <button class="play-btn" onclick="playVideo('${video.id}', '${video.title}', 'free')">
+                            <i class="fas fa-play"></i> تشغيل
+                        </button>
+                    </div>
+                </div>
+                `;
+            });
+            
+            freeVideoList.innerHTML = html;
+        }
+
+        // عرض جدول الطلاب
+        function renderStudentsTable() {
+            studentsCount.textContent = studentsData.length;
+            
+            if (studentsData.length === 0) {
+                studentsTableBody.innerHTML = '<tr><td colspan="8" style="text-align: center; padding: 20px;">لا يوجد طلاب مسجلين</td></tr>';
+                return;
+            }
+            
+            let html = '';
+            studentsData.forEach((student, index) => {
+                html += `
+                <tr>
+                    <td>${index + 1}</td>
+                    <td>${student.name}</td>
+                    <td>${student.code}</td>
+                    <td>${student.grade}</td>
+                    <td>${student.subjects.join(', ')}</td>
+                    <td>${student.date}</td>
+                    <td>${student.phone}</td>
+                    <td>
+                        <button class="action-btn delete-btn" onclick="deleteStudent('${student.id}')">
+                            <i class="fas fa-trash"></i> حذف
+                        </button>
+                    </td>
+                </tr>
+                `;
+            });
+            
+            studentsTableBody.innerHTML = html;
+        }
+
+        // تحديث لوحة الطالب
+        function renderStudentDashboard() {
+            if (!currentStudent) return;
+            
+            // عرض مدرسي الصف (نقوم بعرض نفس المدرسين لجميع الطلاب في هذا المثال)
+            const teachers = [
+                { name: "أ. محمد أحمد", subject: "الرياضيات", description: "مدرس رياضيات متميز بخبرة 10 سنوات" },
+                { name: "أ. سارة علي", subject: "الفيزياء", description: "مدرسة فيزياء حاصلة على جوائز علمية" },
+                { name: "أ. خالد محمود", subject: "الكيمياء", description: "مدرس كيمياء محترف في منهجية التدريس" }
+            ];
+            
+            let teacherCardsHtml = '';
+            teachers.forEach(teacher => {
+                teacherCardsHtml += `
+                <div class="teacher-card" onclick="showTeacherVideosModal('${teacher.name}')">
+                    <div class="teacher-icon">
+                        <i class="fas fa-user-tie"></i>
+                    </div>
+                    <h3>${teacher.name}</h3>
+                    <p>${teacher.subject}</p>
+                    <p>${teacher.description}</p>
+                    <button class="btn">عرض الشروحات</button>
+                </div>
+                `;
+            });
+            
+            studentTeacherCardsContainer.innerHTML = teacherCardsHtml;
+        }
+
+        // توليد كود الطالب
+        function generateStudentCode() {
+            return 'STD' + Math.floor(1000 + Math.random() * 9000);
+        }
+
+        // استخراج معرف فيديو يوتيوب من الرابط
+        function extractYoutubeId(url) {
+            const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|&v=)([^#&?]*).*/;
+            const match = url.match(regExp);
+            return (match && match[2].length === 11) ? match[2] : null;
+        }
+
+        // عرض رسالة حالة
+        function showStatusMessage(element, message, isSuccess) {
+            element.textContent = message;
+            element.className = isSuccess ? 'status-message status-success' : 'status-message status-error';
+            element.style.display = 'block';
+            
+            setTimeout(() => {
+                element.style.display = 'none';
+            }, 5000);
+        }
+
+        // تشغيل الفيديو
+        function playVideo(videoId, videoTitle, category) {
+            const videos = category === 'free' ? freeVideosData : videosData;
+            const video = videos.find(v => v.id === videoId);
+            
+            if (video) {
+                videoPlayer.innerHTML = `<iframe src="${video.youtubeLink}" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>`;
+                videoTitlePlayer.textContent = videoTitle;
+                videoPlayerModal.style.display = 'flex';
+            }
+        }
+
+        // حذف الفيديو
+        function deleteVideo(videoId, category) {
+            if (confirm('هل أنت متأكد من حذف هذا الدرس؟')) {
+                deleteVideoOnServer(videoId, category);
+            }
+        }
+
+        // تعديل الفيديو (دالة تجريبية)
+        function editVideo(videoId) {
+            alert('تعديل الفيديو ' + videoId + ' - هذه الوظيفة قيد التطوير');
+        }
+
+        // حذف الطالب
+        function deleteStudent(studentId) {
+            if (confirm('هل أنت متأكد من حذف هذا الطالب؟')) {
+                deleteStudentOnServer(studentId);
+            }
+        }
+
+        // عرض شروحات المدرس
+        function showTeacherVideosModal(teacherName) {
+            teacherVideosModalTitle.textContent = `<i class="fas fa-video"></i> شروحات ودروس ${teacherName}`;
+            
+            // فلترة الفيديوهات حسب اسم المدرس (سواء مجانية أو مدفوعة)
+            const teacherVideos = [...videosData, ...freeVideosData].filter(video => video.teacherName === teacherName);
+            
+            let html = '';
+            if (teacherVideos.length === 0) {
+                html = '<div class="empty-message"><p>لا توجد دروس متاحة لهذا المدرس حالياً.</p></div>';
+            } else {
+                teacherVideos.forEach(video => {
+                    html += `
+                    <div class="student-video-card">
+                        <div class="video-thumbnail">
+                            <i class="fas fa-play-circle"></i>
+                        </div>
+                        <div class="video-info">
+                            <h3>${video.title}</h3>
+                            <p>${video.description}</p>
+                            <div class="video-meta">
+                                <span>${video.subject} - ${video.level}</span>
+                                <span>${video.date}</span>
+                            </div>
+                            <button class="play-btn" onclick="playVideo('${video.id}', '${video.title}', '${video.category}')">
+                                <i class="fas fa-play"></i> تشغيل
+                            </button>
+                        </div>
+                    </div>
+                    `;
+                });
+            }
+            
+            teacherModalVideoList.innerHTML = html;
+            teacherVideosModal.style.display = 'flex';
+        }
+
+        // إعداد معالجات الأحداث
+        function setupEventListeners() {
+            // نظام التدريسين
+            teacherLoginBtn.addEventListener('click', function() {
+                teacherLoginSection.style.display = 'flex';
+            });
+
+            closeLoginBtn.addEventListener('click', function() {
+                teacherLoginSection.style.display = 'none';
+                loginError.style.display = 'none';
+            });
+
+            teacherLoginSubmit.addEventListener('click', function() {
+                const username = document.getElementById('username').value;
+                const password = document.getElementById('password').value;
+                
+                if (username === teacherCredentials.username && password === teacherCredentials.password) {
+                    teacherLoginSection.style.display = 'none';
+                    mainScreen.style.display = 'none';
+                    teacherDashboard.style.display = 'block';
+                    loginError.style.display = 'none';
+                } else {
+                    loginError.style.display = 'block';
                 }
-                
-                const embedLink = `https://www.youtube.com/embed/${videoId}`;
-                const id = Date.now().toString();
-                
-                const newVideo = {
-                    id,
-                    teacherName,
-                    title,
-                    description,
-                    subject,
-                    level,
-                    date: new Date().toISOString().split('T')[0],
-                    views: 0,
-                    type: "youtube",
-                    category: contentCategory,
-                    youtubeLink: embedLink
-                };
-                
-                addVideoToServer(newVideo);
-                
-                // تنظيف النموذج
-                document.getElementById('video-title').value = '';
-                document.getElementById('video-description').value = '';
-                document.getElementById('youtube-link').value = '';
-                document.getElementById('content-category').value = 'paid';
-                document.getElementById('video-subject').value = 'رياضيات';
-                document.getElementById('video-level').value = 'التهجي';
-                teacherNameSelect.value = 'أ. محمد أحمد';
-                
-                showStatusMessage(videoUploadStatus, 'تم رفع الدرس بنجاح!', true);
-            } else {
-                showStatusMessage(videoUploadStatus, 'الرجاء ملء جميع الحقول المطلوبة', false);
-            }
-        });
+            });
 
-        // بقية الدوال كما في الكود السابق...
-        // ... (نفس الدوال السابقة) ...
+            teacherLogout.addEventListener('click', function() {
+                teacherDashboard.style.display = 'none';
+                mainScreen.style.display = 'flex';
+            });
+
+            // نظام الطلاب
+            studentLoginBtn.addEventListener('click', function() {
+                studentLoginSection.style.display = 'flex';
+            });
+
+            closeStudentLoginBtn.addEventListener('click', function() {
+                studentLoginSection.style.display = 'none';
+                studentLoginError.style.display = 'none';
+            });
+
+            studentLoginSubmit.addEventListener('click', function() {
+                const code = studentCodeInput.value.trim();
+                const student = studentsData.find(s => s.code === code);
+                
+                if (student) {
+                    currentStudent = student;
+                    studentLoginSection.style.display = 'none';
+                    mainScreen.style.display = 'none';
+                    studentDashboard.style.display = 'block';
+                    studentLoginError.style.display = 'none';
+                    
+                    // تحديث رسالة الترحيب
+                    studentWelcomeMessage.textContent = `مرحباً ${student.name}! يمكنك الآن الاستفادة من جميع خدمات المنصة التعليمية. استكشف الدروس والمواد التعليمية المتاحة لك وابدأ رحلتك التعليمية مع أفضل المدرسين.`;
+                } else {
+                    studentLoginError.style.display = 'block';
+                }
+            });
+
+            studentLogout.addEventListener('click', function() {
+                studentDashboard.style.display = 'none';
+                mainScreen.style.display = 'flex';
+                currentStudent = null;
+            });
+
+            // المحاضرات المجانية
+            freeLecturesBtn.addEventListener('click', function() {
+                mainScreen.style.display = 'none';
+                freeLecturesSection.style.display = 'block';
+            });
+
+            freeLecturesBack.addEventListener('click', function() {
+                freeLecturesSection.style.display = 'none';
+                mainScreen.style.display = 'flex';
+            });
+
+            registerFromFree.addEventListener('click', function() {
+                freeLecturesSection.style.display = 'none';
+                studentLoginSection.style.display = 'flex';
+            });
+            
+            // إدارة المواد الدراسية
+            subjectsDropdown.addEventListener('click', function() {
+                subjectsOptions.classList.toggle('show');
+            });
+            
+            // إغلاق قائمة المواد عند النقر خارجها
+            document.addEventListener('click', function(e) {
+                if (!subjectsDropdown.contains(e.target)) {
+                    subjectsOptions.classList.remove('show');
+                }
+            });
+            
+            // اختيار مادة
+            const subjectOptions = document.querySelectorAll('.multi-select-option');
+            subjectOptions.forEach(option => {
+                option.addEventListener('click', function() {
+                    const value = this.getAttribute('data-value');
+                    
+                    if (selectedSubjects.includes(value)) {
+                        selectedSubjects = selectedSubjects.filter(sub => sub !== value);
+                    } else {
+                        selectedSubjects.push(value);
+                    }
+                    
+                    updateSelectedSubjectsDisplay();
+                });
+            });
+            
+            // نسخ الكود
+            copyCodeBtn.addEventListener('click', function() {
+                const code = studentCodeGenerated.textContent;
+                navigator.clipboard.writeText(code).then(() => {
+                    alert('تم نسخ الكود: ' + code);
+                });
+            });
+            
+            // الوضع الداكن
+            darkModeToggle.addEventListener('click', function() {
+                document.body.classList.toggle('dark-mode');
+                const isDarkMode = document.body.classList.contains('dark-mode');
+                localStorage.setItem('darkMode', isDarkMode);
+                darkModeToggle.innerHTML = isDarkMode ? '<i class="fas fa-sun"></i>' : '<i class="fas fa-moon"></i>';
+            });
+            
+            // عرض إدارة الطلاب
+            viewStudentsBtn.addEventListener('click', function() {
+                renderStudentsTable();
+                studentManagementModal.style.display = 'flex';
+            });
+            
+            closeManagementModal.addEventListener('click', function() {
+                studentManagementModal.style.display = 'none';
+            });
+            
+            // طباعة قائمة الطلاب
+            printStudentsBtn.addEventListener('click', function() {
+                window.print();
+            });
+            
+            // إغلاق مشغل الفيديو
+            closeVideoBtn.addEventListener('click', function() {
+                videoPlayerModal.style.display = 'none';
+                videoPlayer.innerHTML = '';
+            });
+            
+            // إغلاق نافذة دروس المدرس
+            closeTeacherVideosModal.addEventListener('click', function() {
+                teacherVideosModal.style.display = 'none';
+            });
+            
+            // عند تسجيل طالب جديد
+            registerNewStudentBtn.addEventListener('click', function() {
+                const name = document.getElementById('new-student-name').value.trim();
+                const phone = document.getElementById('new-student-phone').value.trim();
+                const email = document.getElementById('new-student-email').value.trim();
+                const grade = document.getElementById('new-student-grade').value;
+                
+                if(name && phone && selectedSubjects.length > 0) {
+                    const code = generateStudentCode();
+                    const id = Date.now().toString();
+                    
+                    const student = {
+                        id,
+                        name,
+                        phone,
+                        email,
+                        grade,
+                        subjects: [...selectedSubjects],
+                        code,
+                        date: new Date().toISOString().split('T')[0],
+                    };
+                    
+                    addStudentToServer(student);
+                    
+                    studentCodeGenerated.textContent = code;
+                    generatedCodeDisplay.style.display = 'block';
+                    
+                    // تنظيف النموذج
+                    document.getElementById('new-student-name').value = '';
+                    document.getElementById('new-student-phone').value = '';
+                    document.getElementById('new-student-email').value = '';
+                    document.getElementById('new-student-grade').value = 'التهجي';
+                    selectedSubjects = [];
+                    updateSelectedSubjectsDisplay();
+                    
+                    showStatusMessage(studentRegistrationStatus, 'تم تسجيل الطالب بنجاح', true);
+                    
+                    setTimeout(() => {
+                        generatedCodeDisplay.style.display = 'none';
+                    }, 10000);
+                } else {
+                    showStatusMessage(studentRegistrationStatus, 'الرجاء إدخال الاسم ورقم الهاتف واختيار الصف الدراسي ومادة واحدة على الأقل', false);
+                }
+            });
+
+            // عند رفع فيديو جديد
+            uploadVideoBtn.addEventListener('click', function() {
+                const teacherName = teacherNameSelect.value;
+                const title = document.getElementById('video-title').value;
+                const description = document.getElementById('video-description').value;
+                const subject = document.getElementById('video-subject').value;
+                const level = document.getElementById('video-level').value;
+                const youtubeLink = document.getElementById('youtube-link').value;
+                const contentCategory = document.getElementById('content-category').value;
+                
+                if(title && description && teacherName && youtubeLink) {
+                    const videoId = extractYoutubeId(youtubeLink);
+                    if (!videoId) {
+                        showStatusMessage(videoUploadStatus, 'الرجاء إدخال رابط يوتيوب صحيح', false);
+                        return;
+                    }
+                    
+                    const embedLink = `https://www.youtube.com/embed/${videoId}`;
+                    const id = Date.now().toString();
+                    
+                    const newVideo = {
+                        id,
+                        teacherName,
+                        title,
+                        description,
+                        subject,
+                        level,
+                        date: new Date().toISOString().split('T')[0],
+                        views: 0,
+                        type: "youtube",
+                        category: contentCategory,
+                        youtubeLink: embedLink
+                    };
+                    
+                    addVideoToServer(newVideo);
+                    
+                    // تنظيف النموذج
+                    document.getElementById('video-title').value = '';
+                    document.getElementById('video-description').value = '';
+                    document.getElementById('youtube-link').value = '';
+                    document.getElementById('content-category').value = 'paid';
+                    document.getElementById('video-subject').value = 'رياضيات';
+                    document.getElementById('video-level').value = 'التهجي';
+                    teacherNameSelect.value = 'أ. محمد أحمد';
+                    
+                    showStatusMessage(videoUploadStatus, 'تم رفع الدرس بنجاح!', true);
+                } else {
+                    showStatusMessage(videoUploadStatus, 'الرجاء ملء جميع الحقول المطلوبة', false);
+                }
+            });
+        }
+        
+        // تحديث عرض المواد المختارة
+        function updateSelectedSubjectsDisplay() {
+            selectedSubjectsContainer.innerHTML = '';
+            
+            selectedSubjects.forEach(subject => {
+                const subjectEl = document.createElement('div');
+                subjectEl.className = 'selected-subject';
+                subjectEl.innerHTML = `${subject} <i class="fas fa-times"></i>`;
+                
+                subjectEl.querySelector('i').addEventListener('click', () => {
+                    selectedSubjects = selectedSubjects.filter(s => s !== subject);
+                    updateSelectedSubjectsDisplay();
+                });
+                
+                selectedSubjectsContainer.appendChild(subjectEl);
+            });
+        }
 
         // استدعاء التهيئة عند تحميل الصفحة
         document.addEventListener('DOMContentLoaded', function() {
             initializeApp();
+            setupEventListeners();
             
             // جعل الدوال متاحة عالمياً لاستخدامها في الأحداث
             window.playVideo = playVideo;
