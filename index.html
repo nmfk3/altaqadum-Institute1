@@ -1888,6 +1888,35 @@
             connectWebSocket();
             loadLocalData();
             
+            // إضافة بيانات طلاب أولية إذا لم تكن موجودة
+            if (studentsData.length === 0) {
+                const initialStudents = [
+                    {
+                        id: "1",
+                        name: "علي عبد الرحيم",
+                        phone: "07701234567",
+                        email: "",
+                        grade: "سادس اعدادي",
+                        subjects: ["رياضيات", "فيزياء"],
+                        code: "STD1234",
+                        date: "2025-07-15"
+                    },
+                    {
+                        id: "2",
+                        name: "فاطمة الزهراء",
+                        phone: "07707654321",
+                        email: "fatima@example.com",
+                        grade: "ثالث متوسط",
+                        subjects: ["لغة عربية", "إسلامية"],
+                        code: "STD5678",
+                        date: "2025-07-10"
+                    }
+                ];
+                
+                studentsData = initialStudents;
+                saveLocalData();
+            }
+            
             // تطبيق تفضيلات الوضع الداكن
             const savedDarkMode = localStorage.getItem('darkMode');
             if (savedDarkMode === 'true') {
@@ -1896,6 +1925,8 @@
             } else {
                 darkModeToggle.innerHTML = '<i class="fas fa-moon"></i>';
             }
+            
+            updateUI();
         }
 
         // الاتصال بخادم WebSocket
@@ -2571,6 +2602,10 @@
 
             studentLoginSubmit.addEventListener('click', function() {
                 const code = studentCodeInput.value.trim();
+                
+                // تحميل أحدث بيانات الطلاب
+                loadLocalData();
+                
                 const student = studentsData.find(s => s.code === code);
                 
                 if (student) {
@@ -2582,6 +2617,9 @@
                     
                     // تحديث رسالة الترحيب
                     studentWelcomeMessage.textContent = `مرحباً ${student.name}! يمكنك الآن الاستفادة من جميع خدمات المنصة التعليمية. استكشف الدروس والمواد التعليمية المتاحة لك وابدأ رحلتك التعليمية مع أفضل المدرسين.`;
+                    
+                    // تحديث لوحة الطالب
+                    renderStudentDashboard();
                 } else {
                     studentLoginError.style.display = 'block';
                 }
@@ -2597,6 +2635,10 @@
             freeLecturesBtn.addEventListener('click', function() {
                 mainScreen.style.display = 'none';
                 freeLecturesSection.style.display = 'block';
+                
+                // تحميل أحدث الفيديوهات المجانية
+                loadLocalData();
+                renderFreeVideos();
             });
 
             freeLecturesBack.addEventListener('click', function() {
@@ -2655,6 +2697,8 @@
             
             // عرض إدارة الطلاب
             viewStudentsBtn.addEventListener('click', function() {
+                // تحميل أحدث البيانات قبل العرض
+                loadLocalData();
                 renderStudentsTable();
                 studentManagementModal.style.display = 'flex';
             });
@@ -2708,6 +2752,11 @@
                     date: new Date().toISOString().split('T')[0],
                 };
                 
+                // إضافة الطالب إلى القائمة محلياً أولاً
+                studentsData.push(student);
+                saveLocalData();
+                
+                // إرسال الطالب للخادم
                 addStudentToServer(student);
                 
                 studentCodeGenerated.textContent = code;
@@ -2722,6 +2771,14 @@
                 updateSelectedSubjectsDisplay();
                 
                 showStatusMessage(studentRegistrationStatus, 'تم تسجيل الطالب بنجاح', true);
+                
+                // تحديث عدد الطلاب
+                updateTotalStudents();
+                
+                // تحديث الواجهة إذا كانت نافذة الطلاب مفتوحة
+                if (studentManagementModal.style.display === 'flex') {
+                    renderStudentsTable();
+                }
                 
                 setTimeout(() => {
                     generatedCodeDisplay.style.display = 'none';
