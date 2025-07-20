@@ -6,6 +6,8 @@
     <title>معهد التقدم للدروس الخصوصية</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@300;400;500;700;800&display=swap" rel="stylesheet">
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-database-compat.js"></script>
     <style>
         :root {
             --primary: #FF6B00;
@@ -1191,6 +1193,11 @@
             color: white;
         }
         
+        .syncing {
+            background-color: #ffc107;
+            color: #333;
+        }
+        
         @media (max-width: 768px) {
             .nav-container {
                 flex-direction: column;
@@ -1812,13 +1819,27 @@
     </footer>
 
     <script>
+        // تهيئة Firebase
+        const firebaseConfig = {
+            apiKey: "AIzaSyDcY4H8Gz7lJvZq4X6l7v9zqZvJd0qX4zQ",
+            authDomain: "altakadim-institute.firebaseapp.com",
+            databaseURL: "https://altakadim-institute-default-rtdb.firebaseio.com",
+            projectId: "altakadim-institute",
+            storageBucket: "altakadim-institute.appspot.com",
+            messagingSenderId: "123456789012",
+            appId: "1:123456789012:web:abcdef1234567890abcdef"
+        };
+
+        // تهيئة Firebase
+        firebase.initializeApp(firebaseConfig);
+        const database = firebase.database();
+        
         // بيانات التطبيق
         let studentsData = [];
         let videosData = [];
         let freeVideosData = [];
         let selectedSubjects = [];
         let currentStudent = null;
-        let socket = null;
         let currentEditingStudentId = null;
         let currentEditingVideoId = null;
         
@@ -1885,161 +1906,55 @@
 
         // تهيئة التطبيق
         function initializeApp() {
-            connectWebSocket();
+            initFirebaseListeners();
             loadLocalData();
-            
-            // إضافة بيانات طلاب أولية إذا لم تكن موجودة
-            if (studentsData.length === 0) {
-                const initialStudents = [
-                    {
-                        id: "1",
-                        name: "علي عبد الرحيم",
-                        phone: "07701234567",
-                        email: "",
-                        grade: "سادس اعدادي",
-                        subjects: ["رياضيات", "فيزياء"],
-                        code: "STD1234",
-                        date: "2025-07-15"
-                    },
-                    {
-                        id: "2",
-                        name: "فاطمة الزهراء",
-                        phone: "07707654321",
-                        email: "fatima@example.com",
-                        grade: "ثالث متوسط",
-                        subjects: ["لغة عربية", "إسلامية"],
-                        code: "STD5678",
-                        date: "2025-07-10"
-                    }
-                ];
-                
-                studentsData = initialStudents;
+            applyDarkModePreference();
+            updateUI();
+        }
+
+        // تهيئة مستمعي Firebase
+        function initFirebaseListeners() {
+            // تحديث حالة الاتصال
+            database.ref('.info/connected').on('value', (snapshot) => {
+                if (snapshot.val() === true) {
+                    connectionStatus.innerHTML = '<i class="fas fa-check-circle"></i> متصل بالخادم';
+                    connectionStatus.className = 'connection-status connected';
+                } else {
+                    connectionStatus.innerHTML = '<i class="fas fa-exclamation-triangle"></i> انقطع الاتصال بالخادم';
+                    connectionStatus.className = 'connection-status disconnected';
+                }
+            });
+
+            // مستمع لبيانات الطلاب
+            database.ref('students').on('value', (snapshot) => {
+                studentsData = snapshot.val() || [];
                 saveLocalData();
-            }
-            
-            // تطبيق تفضيلات الوضع الداكن
+                updateUI();
+            });
+
+            // مستمع للفيديوهات المدفوعة
+            database.ref('videos/paid').on('value', (snapshot) => {
+                videosData = snapshot.val() || [];
+                saveLocalData();
+                updateUI();
+            });
+
+            // مستمع للفيديوهات المجانية
+            database.ref('videos/free').on('value', (snapshot) => {
+                freeVideosData = snapshot.val() || [];
+                saveLocalData();
+                updateUI();
+            });
+        }
+
+        // تطبيق تفضيلات الوضع الداكن
+        function applyDarkModePreference() {
             const savedDarkMode = localStorage.getItem('darkMode');
             if (savedDarkMode === 'true') {
                 document.body.classList.add('dark-mode');
                 darkModeToggle.innerHTML = '<i class="fas fa-sun"></i>';
             } else {
                 darkModeToggle.innerHTML = '<i class="fas fa-moon"></i>';
-            }
-            
-            updateUI();
-        }
-
-        // الاتصال بخادم WebSocket
-        function connectWebSocket() {
-            // عنوان خادم WebSocket الافتراضي (يمكن تغييره حسب الخادم الفعلي)
-            const serverURL = "wss://echo.websocket.org";
-            
-            try {
-                socket = new WebSocket(serverURL);
-                
-                connectionStatus.innerHTML = '<i class="fas fa-sync-alt"></i> جاري الاتصال بالخادم...';
-                connectionStatus.className = 'connection-status';
-                
-                socket.addEventListener('open', () => {
-                    connectionStatus.innerHTML = '<i class="fas fa-check-circle"></i> متصل بالخادم';
-                    connectionStatus.className = 'connection-status connected';
-                    
-                    // طلب البيانات الأولية من الخادم
-                    socket.send(JSON.stringify({
-                        action: 'getInitialData'
-                    }));
-                });
-                
-                socket.addEventListener('message', (event) => {
-                    try {
-                        const data = JSON.parse(event.data);
-                        handleServerMessage(data);
-                    } catch (e) {
-                        console.error('خطأ في معالجة رسالة الخادم:', e);
-                    }
-                });
-                
-                socket.addEventListener('error', (error) => {
-                    console.error('خطأ في اتصال WebSocket:', error);
-                    connectionStatus.innerHTML = '<i class="fas fa-exclamation-triangle"></i> تعذر الاتصال بالخادم';
-                    connectionStatus.className = 'connection-status disconnected';
-                    loadLocalData();
-                });
-                
-                socket.addEventListener('close', () => {
-                    console.log('تم إغلاق اتصال WebSocket');
-                    connectionStatus.innerHTML = '<i class="fas fa-exclamation-triangle"></i> انقطع الاتصال بالخادم';
-                    connectionStatus.className = 'connection-status disconnected';
-                });
-            } catch (error) {
-                console.error('فشل إنشاء اتصال WebSocket:', error);
-                connectionStatus.innerHTML = '<i class="fas fa-exclamation-triangle"></i> تعذر الاتصال بالخادم';
-                connectionStatus.className = 'connection-status disconnected';
-                loadLocalData();
-            }
-        }
-
-        // معالجة الرسائل الواردة من الخادم
-        function handleServerMessage(data) {
-            switch (data.type) {
-                case 'initialData':
-                    studentsData = data.students || [];
-                    videosData = data.videos || [];
-                    freeVideosData = data.freeVideos || [];
-                    saveLocalData();
-                    updateUI();
-                    break;
-                    
-                case 'studentAdded':
-                    studentsData.push(data.student);
-                    saveLocalData();
-                    updateUI();
-                    break;
-                    
-                case 'studentUpdated':
-                    const studentIndex = studentsData.findIndex(s => s.id === data.student.id);
-                    if (studentIndex !== -1) {
-                        studentsData[studentIndex] = data.student;
-                        saveLocalData();
-                        updateUI();
-                    }
-                    break;
-                    
-                case 'videoAdded':
-                    if (data.video.category === 'free') {
-                        freeVideosData.push(data.video);
-                    } else {
-                        videosData.push(data.video);
-                    }
-                    saveLocalData();
-                    updateUI();
-                    break;
-                    
-                case 'videoUpdated':
-                    let videoArray = data.video.category === 'free' ? freeVideosData : videosData;
-                    const videoIndex = videoArray.findIndex(v => v.id === data.video.id);
-                    if (videoIndex !== -1) {
-                        videoArray[videoIndex] = data.video;
-                        saveLocalData();
-                        updateUI();
-                    }
-                    break;
-                    
-                case 'studentDeleted':
-                    studentsData = studentsData.filter(s => s.id !== data.studentId);
-                    saveLocalData();
-                    updateUI();
-                    break;
-                    
-                case 'videoDeleted':
-                    videosData = videosData.filter(v => v.id !== data.videoId);
-                    freeVideosData = freeVideosData.filter(v => v.id !== data.videoId);
-                    saveLocalData();
-                    updateUI();
-                    break;
-                    
-                default:
-                    console.log('رسالة غير معروفة من الخادم:', data);
             }
         }
 
@@ -2049,8 +1964,6 @@
                 localStorage.setItem('studentsData', JSON.stringify(studentsData));
                 localStorage.setItem('videosData', JSON.stringify(videosData));
                 localStorage.setItem('freeVideosData', JSON.stringify(freeVideosData));
-                
-                updateUI();
             } catch (error) {
                 console.error('فشل حفظ البيانات محلياً:', error);
             }
@@ -2066,8 +1979,6 @@
                 if (savedStudents) studentsData = JSON.parse(savedStudents);
                 if (savedVideos) videosData = JSON.parse(savedVideos);
                 if (savedFreeVideos) freeVideosData = JSON.parse(savedFreeVideos);
-                
-                updateUI();
             } catch (error) {
                 console.error('فشل تحميل البيانات المحلية:', error);
             }
@@ -2088,103 +1999,6 @@
             }
         }
 
-        // إرسال طلب إضافة طالب إلى الخادم
-        function addStudentToServer(student) {
-            if (socket && socket.readyState === WebSocket.OPEN) {
-                socket.send(JSON.stringify({
-                    action: 'addStudent',
-                    student: student
-                }));
-            } else {
-                // إذا لم يكن هناك اتصال، أضف الطالب محلياً
-                studentsData.push(student);
-                saveLocalData();
-            }
-        }
-
-        // إرسال طلب تحديث طالب إلى الخادم
-        function updateStudentOnServer(student) {
-            if (socket && socket.readyState === WebSocket.OPEN) {
-                socket.send(JSON.stringify({
-                    action: 'updateStudent',
-                    student: student
-                }));
-            } else {
-                // إذا لم يكن هناك اتصال، تحديث الطالب محلياً
-                const index = studentsData.findIndex(s => s.id === student.id);
-                if (index !== -1) {
-                    studentsData[index] = student;
-                    saveLocalData();
-                }
-            }
-        }
-
-        // إرسال طلب إضافة فيديو إلى الخادم
-        function addVideoToServer(video) {
-            if (socket && socket.readyState === WebSocket.OPEN) {
-                socket.send(JSON.stringify({
-                    action: 'addVideo',
-                    video: video
-                }));
-            } else {
-                // إذا لم يكن هناك اتصال، أضف الفيديو محلياً
-                if (video.category === 'free') {
-                    freeVideosData.push(video);
-                } else {
-                    videosData.push(video);
-                }
-                saveLocalData();
-            }
-        }
-
-        // إرسال طلب تحديث فيديو إلى الخادم
-        function updateVideoOnServer(video) {
-            if (socket && socket.readyState === WebSocket.OPEN) {
-                socket.send(JSON.stringify({
-                    action: 'updateVideo',
-                    video: video
-                }));
-            } else {
-                // إذا لم يكن هناك اتصال، تحديث الفيديو محلياً
-                let videoArray = video.category === 'free' ? freeVideosData : videosData;
-                const index = videoArray.findIndex(v => v.id === video.id);
-                if (index !== -1) {
-                    videoArray[index] = video;
-                    saveLocalData();
-                }
-            }
-        }
-
-        // إرسال طلب حذف طالب إلى الخادم
-        function deleteStudentOnServer(studentId) {
-            if (socket && socket.readyState === WebSocket.OPEN) {
-                socket.send(JSON.stringify({
-                    action: 'deleteStudent',
-                    studentId: studentId
-                }));
-            } else {
-                // إذا لم يكن هناك اتصال، احذف الطالب محلياً
-                studentsData = studentsData.filter(s => s.id !== studentId);
-                saveLocalData();
-            }
-        }
-
-        // إرسال طلب حذف فيديو إلى الخادم
-        function deleteVideoOnServer(videoId, category) {
-            if (socket && socket.readyState === WebSocket.OPEN) {
-                socket.send(JSON.stringify({
-                    action: 'deleteVideo',
-                    videoId: videoId,
-                    category: category
-                }));
-            } else {
-                // إذا لم يكن هناك اتصال، احذف الفيديو محلياً
-                videosData = videosData.filter(v => v.id !== videoId);
-                freeVideosData = freeVideosData.filter(v => v.id !== videoId);
-                saveLocalData();
-            }
-        }
-
         // تحديث عدد الطلاب
         function updateTotalStudents() {
             totalStudentsSpan.textContent = studentsData.length;
@@ -2192,16 +2006,13 @@
 
         // عرض الفيديوهات المرفوعة
         function renderUploadedVideos() {
-            // في هذا المثال، سنعرض فقط الفيديوهات المدفوعة (paid)
-            const teacherVideos = videosData.filter(video => video.category === 'paid');
-            
-            if (teacherVideos.length === 0) {
+            if (videosData.length === 0) {
                 uploadedVideosContainer.innerHTML = '<div class="empty-message"><p>لم تقم برفع أي دروس بعد. ابدأ برفع دروسك الأولى!</p></div>';
                 return;
             }
             
             let html = '';
-            teacherVideos.forEach(video => {
+            videosData.forEach(video => {
                 html += `
                 <div class="video-item">
                     <div class="video-header">
@@ -2299,7 +2110,7 @@
         function renderStudentDashboard() {
             if (!currentStudent) return;
             
-            // عرض مدرسي الصف (نقوم بعرض نفس المدرسين لجميع الطلاب في هذا المثال)
+            // عرض مدرسي الصف
             const teachers = [
                 { name: "أ. محمد أحمد", subject: "الرياضيات", description: "مدرس رياضيات متميز بخبرة 10 سنوات" },
                 { name: "أ. سارة علي", subject: "الفيزياء", description: "مدرسة فيزياء حاصلة على جوائز علمية" },
@@ -2368,7 +2179,14 @@
         // حذف الفيديو
         function deleteVideo(videoId, category) {
             if (confirm('هل أنت متأكد من حذف هذا الدرس؟')) {
-                deleteVideoOnServer(videoId, category);
+                database.ref(`videos/${category}/${videoId}`).remove()
+                    .then(() => {
+                        showStatusMessage(videoUploadStatus, 'تم حذف الدرس بنجاح', true);
+                    })
+                    .catch((error) => {
+                        showStatusMessage(videoUploadStatus, 'حدث خطأ أثناء حذف الدرس', false);
+                        console.error('Error deleting video:', error);
+                    });
             }
         }
 
@@ -2419,32 +2237,41 @@
                 const embedLink = `https://www.youtube.com/embed/${videoId}`;
                 
                 // تحديث بيانات الفيديو
-                video.teacherName = teacherName;
-                video.title = title;
-                video.description = description;
-                video.subject = subject;
-                video.level = level;
-                video.youtubeLink = embedLink;
-                video.category = contentCategory;
-                
-                updateVideoOnServer(video);
-                
-                // تنظيف النموذج
-                document.getElementById('video-title').value = '';
-                document.getElementById('video-description').value = '';
-                document.getElementById('youtube-link').value = '';
-                document.getElementById('content-category').value = 'paid';
-                document.getElementById('video-subject').value = 'رياضيات';
-                document.getElementById('video-level').value = 'التهجي';
-                teacherNameSelect.value = 'أ. محمد أحمد';
-                
-                // إعادة زر الرفع إلى حالته الأصلية
-                uploadVideoBtn.innerHTML = '<i class="fas fa-upload"></i> رفع الدرس';
-                uploadVideoBtn.onclick = function() {
-                    uploadNewVideo();
+                const updatedVideo = {
+                    ...video,
+                    teacherName,
+                    title,
+                    description,
+                    subject,
+                    level,
+                    youtubeLink: embedLink,
+                    category: contentCategory
                 };
                 
-                showStatusMessage(videoUploadStatus, 'تم تحديث الدرس بنجاح!', true);
+                // تحديث في قاعدة البيانات
+                database.ref(`videos/paid/${video.id}`).update(updatedVideo)
+                    .then(() => {
+                        // تنظيف النموذج
+                        document.getElementById('video-title').value = '';
+                        document.getElementById('video-description').value = '';
+                        document.getElementById('youtube-link').value = '';
+                        document.getElementById('content-category').value = 'paid';
+                        document.getElementById('video-subject').value = 'رياضيات';
+                        document.getElementById('video-level').value = 'التهجي';
+                        teacherNameSelect.value = 'أ. محمد أحمد';
+                        
+                        // إعادة زر الرفع إلى حالته الأصلية
+                        uploadVideoBtn.innerHTML = '<i class="fas fa-upload"></i> رفع الدرس';
+                        uploadVideoBtn.onclick = function() {
+                            uploadNewVideo();
+                        };
+                        
+                        showStatusMessage(videoUploadStatus, 'تم تحديث الدرس بنجاح!', true);
+                    })
+                    .catch((error) => {
+                        showStatusMessage(videoUploadStatus, 'حدث خطأ أثناء تحديث الدرس', false);
+                        console.error('Error updating video:', error);
+                    });
             } else {
                 showStatusMessage(videoUploadStatus, 'الرجاء ملء جميع الحقول المطلوبة', false);
             }
@@ -2453,7 +2280,14 @@
         // حذف الطالب
         function deleteStudent(studentId) {
             if (confirm('هل أنت متأكد من حذف هذا الطالب؟')) {
-                deleteStudentOnServer(studentId);
+                database.ref(`students/${studentId}`).remove()
+                    .then(() => {
+                        showStatusMessage(studentRegistrationStatus, 'تم حذف الطالب بنجاح', true);
+                    })
+                    .catch((error) => {
+                        showStatusMessage(studentRegistrationStatus, 'حدث خطأ أثناء حذف الطالب', false);
+                        console.error('Error deleting student:', error);
+                    });
             }
         }
 
@@ -2494,29 +2328,38 @@
             
             if(name && phone && selectedSubjects.length > 0) {
                 // تحديث بيانات الطالب
-                student.name = name;
-                student.phone = phone;
-                student.email = email;
-                student.grade = grade;
-                student.subjects = [...selectedSubjects];
-                
-                updateStudentOnServer(student);
-                
-                // تنظيف النموذج
-                document.getElementById('new-student-name').value = '';
-                document.getElementById('new-student-phone').value = '';
-                document.getElementById('new-student-email').value = '';
-                document.getElementById('new-student-grade').value = 'التهجي';
-                selectedSubjects = [];
-                updateSelectedSubjectsDisplay();
-                
-                // إعادة زر التسجيل إلى حالته الأصلية
-                registerNewStudentBtn.innerHTML = '<i class="fas fa-user-plus"></i> تسجيل الطالب';
-                registerNewStudentBtn.onclick = function() {
-                    registerNewStudent();
+                const updatedStudent = {
+                    ...student,
+                    name,
+                    phone,
+                    email,
+                    grade,
+                    subjects: [...selectedSubjects]
                 };
                 
-                showStatusMessage(studentRegistrationStatus, 'تم تحديث بيانات الطالب بنجاح', true);
+                // تحديث في قاعدة البيانات
+                database.ref(`students/${studentId}`).update(updatedStudent)
+                    .then(() => {
+                        // تنظيف النموذج
+                        document.getElementById('new-student-name').value = '';
+                        document.getElementById('new-student-phone').value = '';
+                        document.getElementById('new-student-email').value = '';
+                        document.getElementById('new-student-grade').value = 'التهجي';
+                        selectedSubjects = [];
+                        updateSelectedSubjectsDisplay();
+                        
+                        // إعادة زر التسجيل إلى حالته الأصلية
+                        registerNewStudentBtn.innerHTML = '<i class="fas fa-user-plus"></i> تسجيل الطالب';
+                        registerNewStudentBtn.onclick = function() {
+                            registerNewStudent();
+                        };
+                        
+                        showStatusMessage(studentRegistrationStatus, 'تم تحديث بيانات الطالب بنجاح', true);
+                    })
+                    .catch((error) => {
+                        showStatusMessage(studentRegistrationStatus, 'حدث خطأ أثناء تحديث الطالب', false);
+                        console.error('Error updating student:', error);
+                    });
             } else {
                 showStatusMessage(studentRegistrationStatus, 'الرجاء إدخال الاسم ورقم الهاتف واختيار الصف الدراسي ومادة واحدة على الأقل', false);
             }
@@ -2526,8 +2369,11 @@
         function showTeacherVideosModal(teacherName) {
             teacherVideosModalTitle.textContent = `<i class="fas fa-video"></i> شروحات ودروس ${teacherName}`;
             
-            // فلترة الفيديوهات حسب اسم المدرس (سواء مجانية أو مدفوعة)
-            const teacherVideos = [...videosData, ...freeVideosData].filter(video => video.teacherName === teacherName);
+            // فلترة الفيديوهات حسب اسم المدرس
+            const teacherVideos = [
+                ...videosData.filter(video => video.teacherName === teacherName),
+                ...freeVideosData.filter(video => video.teacherName === teacherName)
+            ];
             
             let html = '';
             if (teacherVideos.length === 0) {
@@ -2557,6 +2403,24 @@
             
             teacherModalVideoList.innerHTML = html;
             teacherVideosModal.style.display = 'flex';
+        }
+
+        // تحديث عرض المواد المختارة
+        function updateSelectedSubjectsDisplay() {
+            selectedSubjectsContainer.innerHTML = '';
+            
+            selectedSubjects.forEach(subject => {
+                const subjectEl = document.createElement('div');
+                subjectEl.className = 'selected-subject';
+                subjectEl.innerHTML = `${subject} <i class="fas fa-times"></i>`;
+                
+                subjectEl.querySelector('i').addEventListener('click', () => {
+                    selectedSubjects = selectedSubjects.filter(s => s !== subject);
+                    updateSelectedSubjectsDisplay();
+                });
+                
+                selectedSubjectsContainer.appendChild(subjectEl);
+            });
         }
 
         // إعداد معالجات الأحداث
@@ -2603,9 +2467,6 @@
             studentLoginSubmit.addEventListener('click', function() {
                 const code = studentCodeInput.value.trim();
                 
-                // تحميل أحدث بيانات الطلاب
-                loadLocalData();
-                
                 const student = studentsData.find(s => s.code === code);
                 
                 if (student) {
@@ -2635,9 +2496,6 @@
             freeLecturesBtn.addEventListener('click', function() {
                 mainScreen.style.display = 'none';
                 freeLecturesSection.style.display = 'block';
-                
-                // تحميل أحدث الفيديوهات المجانية
-                loadLocalData();
                 renderFreeVideos();
             });
 
@@ -2697,8 +2555,6 @@
             
             // عرض إدارة الطلاب
             viewStudentsBtn.addEventListener('click', function() {
-                // تحميل أحدث البيانات قبل العرض
-                loadLocalData();
                 renderStudentsTable();
                 studentManagementModal.style.display = 'flex';
             });
@@ -2752,37 +2608,30 @@
                     date: new Date().toISOString().split('T')[0],
                 };
                 
-                // إضافة الطالب إلى القائمة محلياً أولاً
-                studentsData.push(student);
-                saveLocalData();
-                
-                // إرسال الطالب للخادم
-                addStudentToServer(student);
-                
-                studentCodeGenerated.textContent = code;
-                generatedCodeDisplay.style.display = 'block';
-                
-                // تنظيف النموذج
-                document.getElementById('new-student-name').value = '';
-                document.getElementById('new-student-phone').value = '';
-                document.getElementById('new-student-email').value = '';
-                document.getElementById('new-student-grade').value = 'التهجي';
-                selectedSubjects = [];
-                updateSelectedSubjectsDisplay();
-                
-                showStatusMessage(studentRegistrationStatus, 'تم تسجيل الطالب بنجاح', true);
-                
-                // تحديث عدد الطلاب
-                updateTotalStudents();
-                
-                // تحديث الواجهة إذا كانت نافذة الطلاب مفتوحة
-                if (studentManagementModal.style.display === 'flex') {
-                    renderStudentsTable();
-                }
-                
-                setTimeout(() => {
-                    generatedCodeDisplay.style.display = 'none';
-                }, 10000);
+                // إضافة الطالب إلى قاعدة البيانات
+                database.ref(`students/${id}`).set(student)
+                    .then(() => {
+                        studentCodeGenerated.textContent = code;
+                        generatedCodeDisplay.style.display = 'block';
+                        
+                        // تنظيف النموذج
+                        document.getElementById('new-student-name').value = '';
+                        document.getElementById('new-student-phone').value = '';
+                        document.getElementById('new-student-email').value = '';
+                        document.getElementById('new-student-grade').value = 'التهجي';
+                        selectedSubjects = [];
+                        updateSelectedSubjectsDisplay();
+                        
+                        showStatusMessage(studentRegistrationStatus, 'تم تسجيل الطالب بنجاح', true);
+                        
+                        setTimeout(() => {
+                            generatedCodeDisplay.style.display = 'none';
+                        }, 10000);
+                    })
+                    .catch((error) => {
+                        showStatusMessage(studentRegistrationStatus, 'حدث خطأ أثناء تسجيل الطالب', false);
+                        console.error('Error adding student:', error);
+                    });
             } else {
                 showStatusMessage(studentRegistrationStatus, 'الرجاء إدخال الاسم ورقم الهاتف واختيار الصف الدراسي ومادة واحدة على الأقل', false);
             }
@@ -2822,39 +2671,27 @@
                     youtubeLink: embedLink
                 };
                 
-                addVideoToServer(newVideo);
-                
-                // تنظيف النموذج
-                document.getElementById('video-title').value = '';
-                document.getElementById('video-description').value = '';
-                document.getElementById('youtube-link').value = '';
-                document.getElementById('content-category').value = 'paid';
-                document.getElementById('video-subject').value = 'رياضيات';
-                document.getElementById('video-level').value = 'التهجي';
-                teacherNameSelect.value = 'أ. محمد أحمد';
-                
-                showStatusMessage(videoUploadStatus, 'تم رفع الدرس بنجاح!', true);
+                // إضافة الفيديو إلى قاعدة البيانات
+                database.ref(`videos/${contentCategory}/${id}`).set(newVideo)
+                    .then(() => {
+                        // تنظيف النموذج
+                        document.getElementById('video-title').value = '';
+                        document.getElementById('video-description').value = '';
+                        document.getElementById('youtube-link').value = '';
+                        document.getElementById('content-category').value = 'paid';
+                        document.getElementById('video-subject').value = 'رياضيات';
+                        document.getElementById('video-level').value = 'التهجي';
+                        teacherNameSelect.value = 'أ. محمد أحمد';
+                        
+                        showStatusMessage(videoUploadStatus, 'تم رفع الدرس بنجاح!', true);
+                    })
+                    .catch((error) => {
+                        showStatusMessage(videoUploadStatus, 'حدث خطأ أثناء رفع الدرس', false);
+                        console.error('Error adding video:', error);
+                    });
             } else {
                 showStatusMessage(videoUploadStatus, 'الرجاء ملء جميع الحقول المطلوبة', false);
             }
-        }
-        
-        // تحديث عرض المواد المختارة
-        function updateSelectedSubjectsDisplay() {
-            selectedSubjectsContainer.innerHTML = '';
-            
-            selectedSubjects.forEach(subject => {
-                const subjectEl = document.createElement('div');
-                subjectEl.className = 'selected-subject';
-                subjectEl.innerHTML = `${subject} <i class="fas fa-times"></i>`;
-                
-                subjectEl.querySelector('i').addEventListener('click', () => {
-                    selectedSubjects = selectedSubjects.filter(s => s !== subject);
-                    updateSelectedSubjectsDisplay();
-                });
-                
-                selectedSubjectsContainer.appendChild(subjectEl);
-            });
         }
 
         // استدعاء التهيئة عند تحميل الصفحة
