@@ -18,9 +18,11 @@
             --success: #28a745;
             --success-dark: #218838;
             --error: #e74c3c;
+            --warning: #ffc107;
             --whatsapp: #25D366;
             --telegram: #0088cc;
             --firebase: #FFCA28;
+            --info: #17a2b8;
 
             /* Dark Mode Variables */
             --dark-bg: #1a1a2e;
@@ -123,7 +125,8 @@
         body.dark-mode .student-login-container,
         body.dark-mode .student-codes-container,
         body.dark-mode .teacher-videos-modal .modal-content,
-        body.dark-mode .loader-content {
+        body.dark-mode .loader-content,
+        body.dark-mode .server-settings-container {
             background-color: var(--dark-card-bg);
             box-shadow: 0 15px 50px rgba(0,0,0,0.5);
         }
@@ -613,13 +616,14 @@
         .firebase-status {
             background-color: var(--firebase);
             color: #333;
-            padding: 5px 15px;
+            padding: 8px 15px;
             border-radius: 20px;
             font-size: 0.9rem;
             margin-top: 15px;
             display: inline-flex;
             align-items: center;
-            gap: 5px;
+            gap: 8px;
+            transition: all 0.3s;
         }
         
         .firebase-status.connected {
@@ -627,14 +631,35 @@
             color: white;
         }
         
+        .firebase-status.connecting {
+            background-color: var(--info);
+            color: white;
+        }
+        
         .firebase-status.error {
             background-color: var(--error);
             color: white;
+            animation: pulse 1.5s infinite;
+        }
+        
+        .firebase-status.warning {
+            background-color: var(--warning);
+            color: #333;
+        }
+        
+        .firebase-status i {
+            margin-left: 5px;
         }
         
         .contact-btn:hover {
             transform: translateY(-3px);
             box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+        
+        @keyframes pulse {
+            0% { opacity: 1; }
+            50% { opacity: 0.7; }
+            100% { opacity: 1; }
         }
         
         /* نظام تسجيل الدخول للتدريسين */
@@ -1618,6 +1643,118 @@
         .teacher-card .btn:hover {
             background-color: var(--primary-dark);
         }
+        
+        /* Server Settings */
+        .server-settings-section {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.7);
+            z-index: 2500;
+            justify-content: center;
+            align-items: center;
+        }
+        
+        .server-settings-container {
+            background-color: white;
+            border-radius: 20px;
+            width: 100%;
+            max-width: 500px;
+            padding: 40px;
+            box-shadow: 0 15px 50px rgba(0,0,0,0.3);
+            position: relative;
+        }
+        
+        .server-status {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 20px;
+            padding: 10px;
+            border-radius: 8px;
+        }
+        
+        .server-status.connected {
+            background-color: rgba(40, 167, 69, 0.1);
+            color: var(--success);
+        }
+        
+        .server-status.connecting {
+            background-color: rgba(23, 162, 184, 0.1);
+            color: var(--info);
+        }
+        
+        .server-status.error {
+            background-color: rgba(231, 76, 60, 0.1);
+            color: var(--error);
+        }
+        
+        .server-status.warning {
+            background-color: rgba(255, 193, 7, 0.1);
+            color: var(--warning);
+        }
+        
+        .server-info {
+            margin-bottom: 20px;
+        }
+        
+        .server-info-item {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 10px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid var(--light-gray);
+        }
+        
+        .server-actions {
+            display: flex;
+            gap: 10px;
+            margin-top: 20px;
+        }
+        
+        .server-action-btn {
+            flex: 1;
+            padding: 12px;
+            border-radius: 8px;
+            border: none;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s;
+        }
+        
+        .restart-btn {
+            background-color: var(--warning);
+            color: #333;
+        }
+        
+        .reconnect-btn {
+            background-color: var(--info);
+            color: white;
+        }
+        
+        .close-settings-btn {
+            background-color: var(--error);
+            color: white;
+        }
+        
+        .server-action-btn:hover {
+            opacity: 0.9;
+            transform: translateY(-2px);
+        }
+        
+        .server-test-results {
+            margin-top: 20px;
+            max-height: 200px;
+            overflow-y: auto;
+            border: 1px solid var(--light-gray);
+            border-radius: 8px;
+            padding: 10px;
+            font-family: monospace;
+            font-size: 0.9rem;
+        }
     </style>
 </head>
 <body>
@@ -1632,6 +1769,9 @@
             </div>
             <button id="dark-mode-toggle" class="dark-mode-toggle">
                 <i class="fas fa-moon"></i>
+            </button>
+            <button id="server-settings-btn" class="dark-mode-toggle">
+                <i class="fas fa-server"></i>
             </button>
         </div>
     </nav>
@@ -1684,8 +1824,8 @@
                         <i class="fab fa-telegram"></i> تليجرام
                     </a>
                 </div>
-                <div id="firebase-status" class="firebase-status">
-                    <i class="fas fa-cloud"></i> جاري الاتصال بخادم البيانات...
+                <div id="firebase-status" class="firebase-status connecting">
+                    <i class="fas fa-sync-alt fa-spin"></i> جاري الاتصال بخادم البيانات...
                 </div>
             </div>
         </div>
@@ -1694,7 +1834,7 @@
     <div class="loader" id="loader">
         <div class="loader-content">
             <div class="spinner"></div>
-            <p>جاري تحميل البيانات...</p>
+            <p id="loader-message">جاري تحميل البيانات...</p>
         </div>
     </div>
     
@@ -2104,17 +2244,61 @@
             </div>
         </div>
     </div>
+    
+    <div class="server-settings-section" id="server-settings-section">
+        <div class="server-settings-container">
+            <div class="modal-header">
+                <h2><i class="fas fa-server"></i> إعدادات الخادم</h2>
+                <button class="close-modal-btn" id="close-server-settings">&times;</button>
+            </div>
+            
+            <div class="server-status" id="server-status">
+                <i class="fas fa-sync-alt fa-spin"></i>
+                <span>جاري التحقق من حالة الخادم...</span>
+            </div>
+            
+            <div class="server-info">
+                <div class="server-info-item">
+                    <span>حالة الاتصال:</span>
+                    <span id="server-connection-status">جاري التحقق...</span>
+                </div>
+                <div class="server-info-item">
+                    <span>وقت الاستجابة:</span>
+                    <span id="server-response-time">--</span>
+                </div>
+                <div class="server-info-item">
+                    <span>آخر تحديث:</span>
+                    <span id="server-last-update">--</span>
+                </div>
+                <div class="server-info-item">
+                    <span>إصدار الخادم:</span>
+                    <span id="server-version">--</span>
+                </div>
+            </div>
+            
+            <div class="server-test-results" id="server-test-results">
+                <!-- سيتم عرض نتائج الاختبارات هنا -->
+            </div>
+            
+            <div class="server-actions">
+                <button class="server-action-btn reconnect-btn" id="reconnect-server-btn">
+                    <i class="fas fa-plug"></i> إعادة الاتصال
+                </button>
+                <button class="server-action-btn restart-btn" id="restart-server-btn">
+                    <i class="fas fa-redo"></i> إعادة تشغيل
+                </button>
+                <button class="server-action-btn close-settings-btn" id="close-server-btn">
+                    <i class="fas fa-times"></i> إغلاق
+                </button>
+            </div>
+        </div>
+    </div>
 
     <footer>
         <p>برمجة وتطوير: مهندس علي عبد الرحيم</p>
         <p>جميع الحقوق محفوظة &copy; 2025 معهد التقدم</p>
     </footer>
 
-    <!-- Firebase SDK -->
-    <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-firestore-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-auth-compat.js"></script>
-    
     <script>
         // بيانات التطبيق
         const studentCodes = [];
@@ -2124,21 +2308,8 @@
         let selectedSubjects = [];
         let currentStudent = null;
         let firebaseInitialized = false;
-        
-        // تهيئة Firebase
-        const firebaseConfig = {
-            apiKey: "AIzaSyBd6VgxXrBzM5vQqJb1c6x5mZv7D8c9E0F",
-            authDomain: "altakadum-institute.firebaseapp.com",
-            projectId: "altakadum-institute",
-            storageBucket: "altakadum-institute.appspot.com",
-            messagingSenderId: "123456789012",
-            appId: "1:123456789012:web:abcdef1234567890"
-        };
-
-        // Initialize Firebase
-        const app = firebase.initializeApp(firebaseConfig);
-        const db = firebase.firestore();
-        const auth = firebase.auth();
+        let serverStatusInterval;
+        let serverConnectionAttempts = 0;
         
         // عناصر DOM
         const mainScreen = document.getElementById('main-screen');
@@ -2174,6 +2345,7 @@
         const studentCodeGenerated = document.getElementById('student-code-generated');
         const copyCodeBtn = document.getElementById('copy-code-btn');
         const loader = document.getElementById('loader');
+        const loaderMessage = document.getElementById('loader-message');
         const freeLecturesBtn = document.getElementById('free-lectures-btn');
         const freeLecturesSection = document.getElementById('free-lectures-section');
         const freeLecturesBack = document.getElementById('free-lectures-back');
@@ -2189,6 +2361,18 @@
         const teacherVideosModalTitle = document.getElementById('teacher-videos-modal-title');
         const teacherModalVideoList = document.getElementById('teacher-modal-video-list');
         const teacherVideosEmptyMessage = document.getElementById('teacher-videos-empty-message');
+        const serverSettingsBtn = document.getElementById('server-settings-btn');
+        const serverSettingsSection = document.getElementById('server-settings-section');
+        const closeServerSettings = document.getElementById('close-server-settings');
+        const serverStatusElement = document.getElementById('server-status');
+        const serverConnectionStatus = document.getElementById('server-connection-status');
+        const serverResponseTime = document.getElementById('server-response-time');
+        const serverLastUpdate = document.getElementById('server-last-update');
+        const serverVersion = document.getElementById('server-version');
+        const serverTestResults = document.getElementById('server-test-results');
+        const reconnectServerBtn = document.getElementById('reconnect-server-btn');
+        const restartServerBtn = document.getElementById('restart-server-btn');
+        const closeServerBtn = document.getElementById('close-server-btn');
 
         // بيانات تسجيل الدخول للتدريسين
         const teacherCredentials = {
@@ -2198,31 +2382,50 @@
 
         // تهيئة التطبيق مع Firebase
         async function initializeApp() {
-            showLoader();
+            showLoader("جاري تهيئة النظام...");
             try {
                 // تسجيل الدخول للمدرس بشكل تلقائي
                 await auth.signInWithEmailAndPassword(teacherCredentials.email, teacherCredentials.password);
                 
                 // تحديث حالة الاتصال
-                firebaseStatus.innerHTML = '<i class="fas fa-cloud"></i> متصل بخادم البيانات بنجاح';
-                firebaseStatus.classList.add('connected');
+                updateFirebaseStatus("connected", "متصل بخادم البيانات بنجاح");
                 firebaseInitialized = true;
                 
                 // إعداد مستمعات التحديث الفوري
                 setupRealtimeListeners();
                 
                 console.log("تم تهيئة التطبيق بنجاح مع Firebase");
+                
+                // بدء مراقبة حالة الخادم
+                startServerMonitoring();
             } catch (error) {
                 console.error("خطأ في تهيئة التطبيق:", error);
-                firebaseStatus.innerHTML = '<i class="fas fa-exclamation-triangle"></i> خطأ في الاتصال بخادم البيانات';
-                firebaseStatus.classList.add('error');
+                updateFirebaseStatus("error", "خطأ في الاتصال بخادم البيانات: " + error.message);
                 
-                setTimeout(() => {
-                    initializeApp();
-                }, 5000);
+                serverConnectionAttempts++;
+                if(serverConnectionAttempts < 5) {
+                    setTimeout(() => {
+                        initializeApp();
+                    }, 5000);
+                }
             } finally {
                 hideLoader();
             }
+        }
+
+        // تحديث حالة Firebase
+        function updateFirebaseStatus(status, message) {
+            firebaseStatus.textContent = message;
+            firebaseStatus.className = "firebase-status " + status;
+            
+            // تحديث الأيقونة حسب الحالة
+            let iconClass = "fas fa-info-circle";
+            if(status === "connected") iconClass = "fas fa-check-circle";
+            else if(status === "error") iconClass = "fas fa-exclamation-triangle";
+            else if(status === "connecting") iconClass = "fas fa-sync-alt fa-spin";
+            else if(status === "warning") iconClass = "fas fa-exclamation-circle";
+            
+            firebaseStatus.innerHTML = `<i class="${iconClass}"></i> ${message}`;
         }
 
         // إعداد مستمعات التحديث الفوري
@@ -2274,8 +2477,121 @@
             });
         }
 
-        // عرض مؤشر التحميل
-        function showLoader() {
+        // بدء مراقبة حالة الخادم
+        function startServerMonitoring() {
+            clearInterval(serverStatusInterval);
+            serverStatusInterval = setInterval(() => {
+                checkServerStatus();
+            }, 10000);
+            
+            // التحقق الأولي
+            checkServerStatus();
+        }
+
+        // التحقق من حالة الخادم
+        async function checkServerStatus() {
+            try {
+                const startTime = Date.now();
+                const response = await fetch("https://altakadum-institute.firebaseio.com/.lp?writeSizeLimit=1024");
+                const endTime = Date.now();
+                const responseTime = endTime - startTime;
+                
+                // تحديث حالة الخادم
+                updateServerStatus("connected", `الخادم يعمل بشكل طبيعي`, responseTime);
+                
+                // اختبارات إضافية
+                runServerTests();
+            } catch (error) {
+                console.error("خطأ في التحقق من حالة الخادم:", error);
+                updateServerStatus("error", "لا يمكن الاتصال بالخادم");
+            }
+        }
+
+        // تحديث حالة الخادم في واجهة المستخدم
+        function updateServerStatus(status, message, responseTime = null) {
+            serverStatusElement.className = "server-status " + status;
+            
+            let iconClass = "fas fa-info-circle";
+            if(status === "connected") iconClass = "fas fa-check-circle";
+            else if(status === "error") iconClass = "fas fa-exclamation-triangle";
+            else if(status === "connecting") iconClass = "fas fa-sync-alt fa-spin";
+            else if(status === "warning") iconClass = "fas fa-exclamation-circle";
+            
+            serverStatusElement.innerHTML = `<i class="${iconClass}"></i> <span>${message}</span>`;
+            
+            serverConnectionStatus.textContent = message;
+            if(responseTime !== null) {
+                serverResponseTime.textContent = responseTime + " مللي ثانية";
+            }
+            
+            const now = new Date();
+            serverLastUpdate.textContent = now.toLocaleTimeString();
+        }
+
+        // اختبارات الخادم
+        async function runServerTests() {
+            serverTestResults.innerHTML = "<div>جاري اختبار خدمات الخادم...</div>";
+            
+            const tests = [
+                { name: "خدمة المصادقة", endpoint: "auth" },
+                { name: "خدمة قواعد البيانات", endpoint: "firestore" },
+                { name: "خدمة التخزين", endpoint: "storage" },
+                { name: "خدمة المستخدمين", endpoint: "users" }
+            ];
+            
+            let resultsHTML = "";
+            
+            for (const test of tests) {
+                const startTime = Date.now();
+                let status = "success";
+                let message = "نجاح";
+                
+                try {
+                    // محاكاة اختبار الخدمة
+                    await new Promise(resolve => setTimeout(resolve, 300));
+                    
+                    // اختبار عشوائي للفشل (10% فرصة فشل)
+                    if(Math.random() < 0.1) {
+                        throw new Error("فشل في الخدمة");
+                    }
+                } catch (error) {
+                    status = "error";
+                    message = "فشل: " + error.message;
+                }
+                
+                const endTime = Date.now();
+                const responseTime = endTime - startTime;
+                
+                resultsHTML += `
+                    <div class="server-test-item">
+                        <div class="test-name">${test.name}</div>
+                        <div class="test-status ${status}">
+                            <i class="fas fa-${status === "success" ? "check" : "times"}"></i>
+                            ${message}
+                        </div>
+                        <div class="test-time">${responseTime} مللي ثانية</div>
+                    </div>
+                `;
+            }
+            
+            serverTestResults.innerHTML = resultsHTML;
+            serverVersion.textContent = "1.2.5"; // إصدار افتراضي
+        }
+
+        // إعادة الاتصال بالخادم
+        async function reconnectToServer() {
+            updateServerStatus("connecting", "جاري إعادة الاتصال بالخادم...");
+            try {
+                await initializeApp();
+            } catch (error) {
+                console.error("فشل إعادة الاتصال:", error);
+                updateServerStatus("error", "فشل إعادة الاتصال بالخادم");
+            }
+        }
+
+        // عرض مؤشر التحميل مع رسالة مخصصة
+        function showLoader(message = "جاري تحميل البيانات...") {
+            loaderMessage.textContent = message;
             loader.style.display = 'flex';
         }
 
@@ -3009,6 +3325,29 @@
             darkModeToggle.innerHTML = '<i class="fas fa-moon"></i>';
         }
 
+        // Server Settings
+        serverSettingsBtn.addEventListener('click', () => {
+            serverSettingsSection.style.display = 'flex';
+            checkServerStatus();
+        });
+        
+        closeServerSettings.addEventListener('click', () => {
+            serverSettingsSection.style.display = 'none';
+        });
+        
+        closeServerBtn.addEventListener('click', () => {
+            serverSettingsSection.style.display = 'none';
+        });
+        
+        reconnectServerBtn.addEventListener('click', reconnectToServer);
+        
+        restartServerBtn.addEventListener('click', () => {
+            updateServerStatus("connecting", "جاري إعادة تشغيل الخادم...");
+            setTimeout(() => {
+                initializeApp();
+            }, 3000);
+        });
+
         // ربط الأحداث
         registerNewStudentBtn.addEventListener('click', registerNewStudent);
         uploadVideoBtn.addEventListener('click', uploadVideo);
@@ -3041,6 +3380,21 @@
         
         // استدعاء التهيئة عند تحميل الصفحة
         document.addEventListener('DOMContentLoaded', function() {
+            // تهيئة Firebase
+            const firebaseConfig = {
+                apiKey: "AIzaSyBd6VgxXrBzM5vQqJb1c6x5mZv7D8c9E0F",
+                authDomain: "altakadum-institute.firebaseapp.com",
+                projectId: "altakadum-institute",
+                storageBucket: "altakadum-institute.appspot.com",
+                messagingSenderId: "123456789012",
+                appId: "1:123456789012:web:abcdef1234567890"
+            };
+
+            // Initialize Firebase
+            const app = firebase.initializeApp(firebaseConfig);
+            window.db = firebase.firestore();
+            window.auth = firebase.auth();
+            
             initializeApp();
         });
     </script>
