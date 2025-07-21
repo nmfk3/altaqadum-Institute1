@@ -6,7 +6,6 @@
     <title>معهد التقدم للدروس الخصوصية</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@300;400;500;700;800&display=swap" rel="stylesheet">
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
         :root {
             --primary: #FF6B00;
@@ -153,7 +152,7 @@
 
         body.dark-mode .form-group input,
         body.dark-mode .form-group select,
-        body.dark-mode .form-group textarea {
+        body极速赛车开奖官网.dark-mode .form-group textarea {
             background-color: var(--dark-input-bg);
             border-color: var(--dark-gray);
             color: var(--dark-text);
@@ -594,7 +593,7 @@
             align-items: center;
             gap: 10px;
             padding: 12px 25px;
-            border-radius: 30px;
+            border-radius: 30极速赛车开奖官网px;
             text-decoration: none;
             font-weight: 600;
             transition: all 0.3s;
@@ -1474,7 +1473,7 @@
         .selected-subjects {
             display: flex;
             flex-wrap: wrap;
-            gap: 5px;
+            gap: 5极速赛车开奖官网px;
             margin-top: 5px;
         }
         
@@ -1721,7 +1720,7 @@
             </div>
             
             <button class="login-btn" id="teacher-login-submit">
-                <i class="fas fa-sign-in-alt"></i> تسجيل الدخول
+                <i class="fas fa-sign-in-alt"></极速赛车开奖官网i> تسجيل الدخول
             </button>
         </div>
     </div>
@@ -2114,992 +2113,141 @@
     <div id="notification" class="notification"></div>
 
     <script>
-        // بيانات التطبيق
-        const studentCodes = [];
-        const studentsData = [];
-        const videosData = [];
-        const freeVideosData = [];
-        let selectedSubjects = [];
-        let currentStudent = null;
-        
-        // عناصر DOM
-        const mainScreen = document.getElementById('main-screen');
-        const teacherLoginBtn = document.getElementById('teacher-login-btn');
-        const teacherLoginSection = document.getElementById('teacher-login');
-        const closeLoginBtn = document.getElementById('close-login');
-        const teacherLoginSubmit = document.getElementById('teacher-login-submit');
-        const loginError = document.getElementById('login-error');
-        const teacherDashboard = document.getElementById('teacher-dashboard');
-        const teacherLogout = document.getElementById('teacher-logout');
-        const studentLoginBtn = document.getElementById('student-login-btn');
-        const studentLoginSection = document.getElementById('student-login-section');
-        const closeStudentLoginBtn = document.getElementById('close-student-login');
-        const studentLoginSubmit = document.getElementById('student-login-submit');
-        const studentLoginError = document.getElementById('student-login-error');
-        const studentCodeInput = document.getElementById('student-code-input');
-        const studentDashboard = document.getElementById('student-dashboard');
-        const studentLogout = document.getElementById('student-logout');
-        const studentWelcomeMessage = document.getElementById('student-welcome-message');
-        const studentTeacherCardsContainer = document.getElementById('student-teacher-cards');
-        const uploadVideoBtn = document.getElementById('upload-video');
-        const uploadedVideosContainer = document.getElementById('uploaded-videos');
-        const freeVideoList = document.getElementById('free-video-list');
-        const totalVideosSpan = document.getElementById('total-videos');
-        const totalStudentsSpan = document.getElementById('total-students');
-        const viewStudentsBtn = document.getElementById('view-students-btn');
-        const studentManagementModal = document.getElementById('student-management-modal');
-        const closeManagementModal = document.getElementById('close-management-modal');
-        const studentsTableBody = document.getElementById('students-table-body');
-        const studentsCount = document.getElementById('students-count');
-        const printStudentsBtn = document.getElementById('print-students-btn');
-        const registerNewStudentBtn = document.getElementById('register-new-student');
-        const generatedCodeDisplay = document.getElementById('generated-code-display');
-        const studentCodeGenerated = document.getElementById('student-code-generated');
-        const copyCodeBtn = document.getElementById('copy-code-btn');
-        const loader = document.getElementById('loader');
-        const freeLecturesBtn = document.getElementById('free-lectures-btn');
-        const freeLecturesSection = document.getElementById('free-lectures-section');
-        const freeLecturesBack = document.getElementById('free-lectures-back');
-        const registerFromFree = document.getElementById('register-from-free');
-        const subjectsDropdown = document.getElementById('subjects-dropdown');
-        const subjectsOptions = document.getElementById('subjects-options');
-        const selectedSubjectsContainer = document.getElementById('selected-subjects');
-        const darkModeToggle = document.getElementById('dark-mode-toggle');
-        const teacherNameSelect = document.getElementById('teacher-name-select');
-        const notificationElement = document.getElementById('notification');
-        const teacherVideosModal = document.getElementById('teacher-videos-modal');
-        const closeTeacherVideosModal = document.getElementById('close-teacher-videos-modal');
-        const teacherVideosModalTitle = document.getElementById('teacher-videos-modal-title');
-        const teacherModalVideoList = document.getElementById('teacher-modal-video-list');
-        const teacherVideosEmptyMessage = document.getElementById('teacher-videos-empty-message');
-
-        // بيانات تسجيل الدخول للتدريسين
-        const teacherCredentials = {
-            username: "teacher",
-            password: "T1234@2025"
-        };
-
-        // تعريف Supabase
-        const SUPABASE_URL = 'https://qkfzggbjqjqjghnxtqil.supabase.co';
-        const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFrZnpnZ2JqcWpxamdobnh0cWlsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MTU4MzI0OTMsImV4cCI6MjAzMTQwODQ5M30.5e8fGt0M3VWvQK5H1YvN4eBw6vqXGjVkfZ1d8b1Z3yQ';
-        
-        const supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
-        
-        // تعريف الجداول
-        const STUDENTS_TABLE = 'students';
-        const VIDEOS_TABLE = 'videos';
-        const FREE_VIDEOS_TABLE = 'free_videos';
-        
-        // عرض تنبيه
-        function showNotification(message, isError = false) {
-            notificationElement.textContent = message;
-            notificationElement.className = `notification ${isError ? 'error' : ''} show`;
+        // ==================== تهيئة التطبيق ====================
+        document.addEventListener('DOMContentLoaded', function() {
+            // بيانات التطبيق
+            const studentCodes = [];
+            const studentsData = [];
+            const videosData = [];
+            const freeVideosData = [];
+            let selectedSubjects = [];
+            let currentStudent = null;
             
-            setTimeout(() => {
-                notificationElement.classList.remove('show');
-            }, 3000);
-        }
-        
-        // تحميل الطلاب من Supabase
-        async function loadStudents() {
-            showLoader();
-            try {
-                const { data, error } = await supabase
-                    .from(STUDENTS_TABLE)
-                    .select('*');
+            // بيانات تسجيل الدخول للتدريسين
+            const teacherCredentials = {
+                username: "teacher",
+                password: "T1234@2025"
+            };
+            
+            // ==================== وظائف التطبيق الأساسية ====================
+            function showNotification(message, isError = false) {
+                const notificationElement = document.getElementById('notification');
+                if (!notificationElement) return;
                 
-                if (error) throw error;
+                notificationElement.textContent = message;
+                notificationElement.className = `notification ${isError ? 'error' : ''} show`;
                 
-                studentsData.length = 0;
-                studentsData.push(...data);
-                studentCodes.length = 0;
-                studentCodes.push(...data.map(s => s.code));
-                
-                updateTotalStudents();
-                showNotification('تم تحميل بيانات الطلاب بنجاح');
-            } catch (error) {
-                console.error('خطأ في تحميل الطلاب:', error);
-                showNotification('حدث خطأ أثناء تحميل بيانات الطلاب', true);
-            } finally {
-                hideLoader();
+                setTimeout(() => {
+                    notificationElement.classList.remove('show');
+                }, 3000);
             }
-        }
-        
-        // حفظ طالب جديد في Supabase
-        async function saveStudent(student) {
-            showLoader();
-            try {
-                const { data, error } = await supabase
-                    .from(STUDENTS_TABLE)
-                    .insert([student]);
-                
-                if (error) throw error;
-                
-                studentsData.push(data[0]);
-                studentCodes.push(data[0].code);
-                
-                updateTotalStudents();
-                showNotification('تم تسجيل الطالب بنجاح');
-                return data[0];
-            } catch (error) {
-                console.error('خطأ في تسجيل الطالب:', error);
-                showNotification('حدث خطأ أثناء تسجيل الطالب', true);
-                throw error;
-            } finally {
-                hideLoader();
+            
+            function showLoader() {
+                const loader = document.getElementById('loader');
+                if (loader) loader.style.display = 'flex';
             }
-        }
-        
-        // حذف طالب من Supabase
-        async function deleteStudentFromDB(code) {
-            showLoader();
-            try {
-                const { error } = await supabase
-                    .from(STUDENTS_TABLE)
-                    .delete()
-                    .eq('code', code);
-                
-                if (error) throw error;
-                
-                const index = studentsData.findIndex(s => s.code === code);
-                if (index !== -1) studentsData.splice(index, 1);
-                
-                const codeIndex = studentCodes.indexOf(code);
-                if (codeIndex !== -1) studentCodes.splice(codeIndex, 1);
-                
-                updateTotalStudents();
-                showNotification('تم حذف الطالب بنجاح');
-            } catch (error) {
-                console.error('خطأ في حذف الطالب:', error);
-                showNotification('حدث خطأ أثناء حذف الطالب', true);
-            } finally {
-                hideLoader();
+
+            function hideLoader() {
+                const loader = document.getElementById('loader');
+                if (loader) loader.style.display = 'none';
             }
-        }
-        
-        // تحميل الفيديوهات من Supabase
-        async function loadVideos() {
-            showLoader();
-            try {
-                // تحميل الفيديوهات المدفوعة
-                const { data: paidVideos, error: paidError } = await supabase
-                    .from(VIDEOS_TABLE)
-                    .select('*');
+            
+            function generateStudentCode() {
+                const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ0123456789';
+                let code = '';
                 
-                if (paidError) throw paidError;
+                do {
+                    code = 'STU2025-';
+                    for (let j = 0; j < 5; j++) {
+                        const randomIndex = Math.floor(Math.random() * chars.length);
+                        code += chars[randomIndex];
+                    }
+                } while (studentCodes.includes(code));
                 
-                // تحميل الفيديوهات المجانية
-                const { data: freeVideos, error: freeError } = await supabase
-                    .from(FREE_VIDEOS_TABLE)
-                    .select('*');
-                
-                if (freeError) throw freeError;
-                
-                videosData.length = 0;
-                freeVideosData.length = 0;
-                
-                videosData.push(...paidVideos);
-                freeVideosData.push(...freeVideos);
-                
-                renderUploadedVideos();
-                renderFreeVideos();
-                updateTotalVideos();
-                showNotification('تم تحميل الفيديوهات بنجاح');
-            } catch (error) {
-                console.error('خطأ في تحميل الفيديوهات:', error);
-                showNotification('حدث خطأ أثناء تحميل الفيديوهات', true);
-            } finally {
-                hideLoader();
+                return code;
             }
-        }
-        
-        // حفظ فيديو جديد في Supabase
-        async function saveVideo(video, isFree = false) {
-            showLoader();
-            try {
-                const table = isFree ? FREE_VIDEOS_TABLE : VIDEOS_TABLE;
-                const { data, error } = await supabase
-                    .from(table)
-                    .insert([video]);
+            
+            // ==================== وظائف العرض ====================
+            function renderUploadedVideos() {
+                const uploadedVideosContainer = document.getElementById('uploaded-videos');
+                if (!uploadedVideosContainer) return;
                 
-                if (error) throw error;
+                uploadedVideosContainer.innerHTML = '';
                 
-                if (isFree) {
-                    freeVideosData.push(data[0]);
-                } else {
-                    videosData.push(data[0]);
+                const allVideos = [...videosData, ...freeVideosData];
+                
+                if (allVideos.length === 0) {
+                    uploadedVideosContainer.innerHTML = `
+                        <div class="empty-message">
+                            <p>لم تقم برفع أي دروس بعد. ابدأ برفع دروسك الأولى!</p>
+                        </div>
+                    `;
+                    return;
                 }
                 
-                renderUploadedVideos();
-                renderFreeVideos();
-                updateTotalVideos();
-                showNotification('تم رفع الفيديو بنجاح');
-                return data[0];
-            } catch (error) {
-                console.error('خطأ في رفع الفيديو:', error);
-                showNotification('حدث خطأ أثناء رفع الفيديو', true);
-                throw error;
-            } finally {
-                hideLoader();
-            }
-        }
-        
-        // حذف فيديو من Supabase
-        async function deleteVideoFromDB(id, isFree = false) {
-            showLoader();
-            try {
-                const table = isFree ? FREE_VIDEOS_TABLE : VIDEOS_TABLE;
-                const { error } = await supabase
-                    .from(table)
-                    .delete()
-                    .eq('id', id);
+                allVideos.sort((a, b) => b.id - a.id);
                 
-                if (error) throw error;
-                
-                let videoList = isFree ? freeVideosData : videosData;
-                const index = videoList.findIndex(v => v.id === id);
-                if (index !== -1) videoList.splice(index, 1);
-                
-                renderUploadedVideos();
-                renderFreeVideos();
-                updateTotalVideos();
-                showNotification('تم حذف الفيديو بنجاح');
-            } catch (error) {
-                console.error('خطأ في حذف الفيديو:', error);
-                showNotification('حدث خطأ أثناء حذف الفيديو', true);
-            } finally {
-                hideLoader();
-            }
-        }
-        
-        // الاشتراك في تحديثات الوقت الحقيقي
-        function setupRealtimeUpdates() {
-            // تحديثات الطلاب
-            const studentsChannel = supabase
-                .channel('students')
-                .on('postgres_changes', {
-                    event: 'INSERT',
-                    schema: 'public',
-                    table: STUDENTS_TABLE
-                }, (payload) => {
-                    const newStudent = payload.new;
-                    if (!studentsData.some(s => s.code === newStudent.code)) {
-                        studentsData.push(newStudent);
-                        studentCodes.push(newStudent.code);
-                        updateTotalStudents();
-                        showNotification('تم إضافة طالب جديد');
-                        
-                        if (teacherDashboard.style.display === 'block') {
-                            renderStudentsTable();
-                        }
-                    }
-                })
-                .on('postgres_changes', {
-                    event: 'DELETE',
-                    schema: 'public',
-                    table: STUDENTS_TABLE
-                }, (payload) => {
-                    const deletedCode = payload.old.code;
-                    const index = studentsData.findIndex(s => s.code === deletedCode);
-                    if (index !== -1) {
-                        studentsData.splice(index, 1);
-                        const codeIndex = studentCodes.indexOf(deletedCode);
-                        if (codeIndex !== -1) studentCodes.splice(codeIndex, 1);
-                        updateTotalStudents();
-                        showNotification('تم حذف طالب');
-                        
-                        if (teacherDashboard.style.display === 'block') {
-                            renderStudentsTable();
-                        }
-                    }
-                })
-                .subscribe();
-            
-            // تحديثات الفيديوهات المدفوعة
-            const videosChannel = supabase
-                .channel('videos')
-                .on('postgres_changes', {
-                    event: '*',
-                    schema: 'public',
-                    table: VIDEOS_TABLE
-                }, (payload) => {
-                    if (payload.eventType === 'INSERT') {
-                        videosData.push(payload.new);
-                        showNotification('تم إضافة فيديو مدفوع جديد');
-                    } else if (payload.eventType === 'DELETE') {
-                        const index = videosData.findIndex(v => v.id === payload.old.id);
-                        if (index !== -1) videosData.splice(index, 1);
-                        showNotification('تم حذف فيديو مدفوع');
-                    } else if (payload.eventType === 'UPDATE') {
-                        const index = videosData.findIndex(v => v.id === payload.new.id);
-                        if (index !== -1) videosData[index] = payload.new;
-                        showNotification('تم تحديث فيديو مدفوع');
-                    }
-                    
-                    updateTotalVideos();
-                    renderUploadedVideos();
-                    if (currentStudent) renderStudentDashboard();
-                })
-                .subscribe();
-            
-            // تحديثات الفيديوهات المجانية
-            const freeVideosChannel = supabase
-                .channel('free_videos')
-                .on('postgres_changes', {
-                    event: '*',
-                    schema: 'public',
-                    table: FREE_VIDEOS_TABLE
-                }, (payload) => {
-                    if (payload.eventType === 'INSERT') {
-                        freeVideosData.push(payload.new);
-                        showNotification('تم إضافة فيديو مجاني جديد');
-                    } else if (payload.eventType === 'DELETE') {
-                        const index = freeVideosData.findIndex(v => v.id === payload.old.id);
-                        if (index !== -1) freeVideosData.splice(index, 1);
-                        showNotification('تم حذف فيديو مجاني');
-                    } else if (payload.eventType === 'UPDATE') {
-                        const index = freeVideosData.findIndex(v => v.id === payload.new.id);
-                        if (index !== -1) freeVideosData[index] = payload.new;
-                        showNotification('تم تحديث فيديو مجاني');
-                    }
-                    
-                    updateTotalVideos();
-                    renderUploadedVideos();
-                    renderFreeVideos();
-                })
-                .subscribe();
-        }
-        
-        // تهيئة التطبيق
-        async function initializeApp() {
-            showLoader();
-            try {
-                await Promise.all([loadStudents(), loadVideos()]);
-                setupRealtimeUpdates();
-                renderUploadedVideos();
-                renderFreeVideos();
-                updateTotalVideos();
-                updateTotalStudents();
-                console.log("تم تهيئة التطبيق بنجاح");
-            } catch (error) {
-                console.error("خطأ في تهيئة التطبيق:", error);
-                showNotification('حدث خطأ في تحميل البيانات الأولية', true);
-            } finally {
-                hideLoader();
-            }
-        }
-        
-        // عرض مؤشر التحميل
-        function showLoader() {
-            loader.style.display = 'flex';
-        }
-
-        // إخفاء مؤشر التحميل
-        function hideLoader() {
-            loader.style.display = 'none';
-        }
-
-        // نسخ كود الطالب
-        copyCodeBtn?.addEventListener('click', function() {
-            const code = studentCodeGenerated.textContent;
-            navigator.clipboard.writeText(code).then(() => {
-                alert('تم نسخ الكود بنجاح!');
-            }).catch(err => {
-                console.error('Failed to copy: ', err);
-                alert('حدث خطأ أثناء نسخ الكود');
-            });
-        });
-
-        // تبديل نوع المحتوى
-        function toggleContentType() {
-            const contentType = document.getElementById('content-type').value;
-            if (contentType === 'file') {
-                document.getElementById('file-upload-group').style.display = 'block';
-                document.getElementById('youtube-link-group').style.display = 'none';
-            } else {
-                document.getElementById('file-upload-group').style.display = 'none';
-                document.getElementById('youtube-link-group').style.display = 'block';
-            }
-        }
-
-        // تحديث عرض المواد المختارة للطالب الجديد
-        function updateSelectedSubjectsDisplay() {
-            selectedSubjectsContainer.innerHTML = '';
-            if (selectedSubjects.length === 0) {
-                subjectsDropdown.textContent = 'اختر المواد الدراسية';
-                subjectsDropdown.appendChild(document.createElement('i')).className = 'fas fa-chevron-down';
-                return;
-            }
-
-            if (selectedSubjects.includes('جميع المواد')) {
-                const span = document.createElement('span');
-                span.className = 'selected-subject';
-                span.textContent = 'جميع المواد';
-                const removeIcon = document.createElement('i');
-                removeIcon.className = 'fas fa-times-circle';
-                removeIcon.onclick = (e) => {
-                    e.stopPropagation();
-                    selectedSubjects = [];
-                    updateSelectedSubjectsDisplay();
-                };
-                span.appendChild(removeIcon);
-                selectedSubjectsContainer.appendChild(span);
-                subjectsDropdown.textContent = 'تم الاختيار';
-                subjectsDropdown.appendChild(document.createElement('i')).className = 'fas fa-chevron-down';
-                return;
-            }
-            
-            selectedSubjects.forEach(subject => {
-                const span = document.createElement('span');
-                span.className = 'selected-subject';
-                span.textContent = subject;
-                const removeIcon = document.createElement('i');
-                removeIcon.className = 'fas fa-times-circle';
-                removeIcon.onclick = (e) => {
-                    e.stopPropagation();
-                    selectedSubjects = selectedSubjects.filter(s => s !== subject);
-                    updateSelectedSubjectsDisplay();
-                };
-                span.appendChild(removeIcon);
-                selectedSubjectsContainer.appendChild(span);
-            });
-            subjectsDropdown.textContent = 'تم الاختيار';
-            subjectsDropdown.appendChild(document.createElement('i')).className = 'fas fa-chevron-down';
-        }
-
-        // تسجيل طالب جديد من قبل المدرس
-        registerNewStudentBtn.addEventListener('click', async function() {
-            const name = document.getElementById('new-student-name').value.trim();
-            const phone = document.getElementById('new-student-phone').value.trim();
-            const email = document.getElementById('new-student-email').value.trim();
-            const grade = document.getElementById('new-student-grade').value;
-            
-            if(name && phone && selectedSubjects.length > 0) {
-                const code = generateStudentCode();
-                
-                const student = {
-                    name,
-                    phone,
-                    email,
-                    grade,
-                    subjects: [...selectedSubjects],
-                    code,
-                    date: new Date().toISOString().split('T')[0],
-                    deviceId: null
-                };
-                
-                try {
-                    const newStudent = await saveStudent(student);
-                    
-                    studentCodeGenerated.textContent = newStudent.code;
-                    generatedCodeDisplay.style.display = 'block';
-                    
-                    document.getElementById('new-student-name').value = '';
-                    document.getElementById('new-student-phone').value = '';
-                    document.getElementById('new-student-email').value = '';
-                    document.getElementById('new-student-grade').value = 'التهجي';
-                    selectedSubjects = [];
-                    updateSelectedSubjectsDisplay();
-                    
-                    setTimeout(() => {
-                        generatedCodeDisplay.style.display = 'none';
-                    }, 10000);
-                } catch (error) {
-                    console.error("خطأ في حفظ بيانات الطالب:", error);
-                }
-            } else {
-                showNotification('الرجاء إدخال الاسم ورقم الهاتف واختيار الصف الدراسي ومادة واحدة على الأقل', true);
-            }
-        });
-        
-        // رفع فيديو جديد
-        uploadVideoBtn.addEventListener('click', async function() {
-            const teacherName = teacherNameSelect.value;
-            const title = document.getElementById('video-title').value;
-            const description = document.getElementById('video-description').value;
-            const subject = document.getElementById('video-subject').value;
-            const level = document.getElementById('video-level').value;
-            const contentType = document.getElementById('content-type').value;
-            const contentCategory = document.getElementById('content-category').value;
-            
-            if(title && description && teacherName) {
-                const newVideo = {
-                    teacherName,
-                    title,
-                    description,
-                    subject,
-                    level,
-                    date: new Date().toISOString().split('T')[0],
-                    views: 0,
-                    rating: 0,
-                    type: contentType,
-                    category: contentCategory
-                };
-                
-                if (contentType === 'file') {
-                    const fileInput = document.getElementById('video-file');
-                    if (fileInput.files.length > 0) {
-                        newVideo.fileName = fileInput.files[0].name;
-                        newVideo.fileSize = (fileInput.files[0].size / (1024 * 1024)).toFixed(2) + ' MB';
-                    } else {
-                        showNotification('الرجاء اختيار ملف الفيديو', true);
-                        return;
-                    }
-                } else {
-                    const youtubeLink = document.getElementById('youtube-link').value;
-                    if (youtubeLink) {
-                        newVideo.youtubeLink = youtubeLink;
-                    } else {
-                        showNotification('الرجاء إدخال رابط يوتيوب صحيح', true);
-                        return;
-                    }
-                }
-                
-                try {
-                    await saveVideo(newVideo, contentCategory === 'free');
-                    
-                    document.getElementById('video-title').value = '';
-                    document.getElementById('video-description').value = '';
-                    document.getElementById('video-file').value = '';
-                    document.getElementById('youtube-link').value = '';
-                    document.getElementById('content-type').value = 'file';
-                    toggleContentType();
-                    document.getElementById('content-category').value = 'paid';
-                    document.getElementById('video-subject').value = 'رياضيات';
-                    document.getElementById('video-level').value = 'التهجي';
-                    teacherNameSelect.value = 'أ. محمد أحمد';
-                } catch (error) {
-                    console.error("خطأ في رفع الفيديو:", error);
-                }
-            } else {
-                showNotification('الرجاء ملء جميع الحقول المطلوبة', true);
-            }
-        });
-        
-        // حذف فيديو
-        async function deleteVideo(id, isFree = false) {
-            if (!confirm('هل أنت متأكد من حذف هذا الدرس؟')) return;
-            
-            try {
-                await deleteVideoFromDB(id, isFree);
-            } catch (error) {
-                console.error("خطأ في حذف الفيديو:", error);
-            }
-        }
-        
-        // حذف طالب
-        async function deleteStudent(code) {
-            if (!confirm('هل أنت متأكد من حذف هذا الطالب؟ سيتم حذف كوده أيضاً.')) return;
-            
-            try {
-                await deleteStudentFromDB(code);
-            } catch (error) {
-                console.error("خطأ في حذف الطالب:", error);
-            }
-        }
-        
-        // توليد كود طالب فريد
-        function generateStudentCode() {
-            const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ0123456789';
-            let code = '';
-            
-            do {
-                code = 'STU2025-';
-                for (let j = 0; j < 5; j++) {
-                    const randomIndex = Math.floor(Math.random() * chars.length);
-                    code += chars[randomIndex];
-                }
-            } while (studentCodes.includes(code));
-            
-            return code;
-        }
-
-        // عرض الفيديوهات المرفوعة للتدريسين (مدفوعة ومجانية)
-        function renderUploadedVideos() {
-            if (!uploadedVideosContainer) return;
-            
-            uploadedVideosContainer.innerHTML = '';
-            
-            const allVideos = [...videosData, ...freeVideosData];
-            
-            if (allVideos.length === 0) {
-                uploadedVideosContainer.innerHTML = `
-                    <div class="empty-message">
-                        <p>لم تقم برفع أي دروس بعد. ابدأ برفع دروسك الأولى!</p>
-                    </div>
-                `;
-                return;
-            }
-            
-            allVideos.sort((a, b) => b.id - a.id); // Sort by newest first
-            
-            allVideos.forEach(video => {
-                const videoElement = document.createElement('div');
-                videoElement.className = 'video-item';
-                videoElement.innerHTML = `
-                    <div class="video-header">
-                        <div class="video-title">${video.title} <span style="color: var(--primary-dark); font-size: 0.9em;">(${video.level})</span> ${video.category === 'free' ? '<span style="color: var(--primary);">(مجاني)</span>' : ''}</div>
-                        <div class="video-date">${video.date}</div>
-                    </div>
-                    <div class="video-description">${video.description}</div>
-                    <div class="video-meta">
-                        <span>المدرس: ${video.teacherName}</span>
-                        <span>المادة: ${video.subject}</span>
-                        <span>المشاهدات: ${video.views || 0}</span>
-                    </div>
-                    <div class="video-actions">
-                        <button class="action-btn edit-btn" onclick="editVideo(${video.id})">
-                            <i class="fas fa-edit"></i> تعديل
-                        </button>
-                        <button class="action-btn delete-btn" onclick="deleteVideo(${video.id}, ${video.category === 'free'})">
-                            <i class="fas fa-trash"></i> حذف
-                        </button>
-                    </div>
-                `;
-                uploadedVideosContainer.appendChild(videoElement);
-            });
-        }
-
-        // عرض الفيديوهات المجانية
-        function renderFreeVideos() {
-            if (!freeVideoList) return;
-            
-            freeVideoList.innerHTML = '';
-            
-            if (freeVideosData.length === 0) {
-                freeVideoList.innerHTML = `
-                    <div class="empty-message">
-                        <p>لا توجد محاضرات مجانية متاحة حالياً. الرجاء العودة لاحقاً.</p>
-                    </div>
-                `;
-                return;
-            }
-            
-            freeVideosData.sort((a, b) => b.id - a.id); // Sort by newest first
-
-            freeVideosData.forEach(video => {
-                const videoCard = document.createElement('div');
-                videoCard.className = 'student-video-card';
-                
-                let thumbnailContent = '<i class="fas fa-play-circle"></i>';
-                if (video.type === 'youtube') {
-                    thumbnailContent = '<i class="fab fa-youtube" style="color: white;"></i>';
-                } else if (video.type === 'file') {
-                    thumbnailContent = '<i class="fas fa-file-video"></i>';
-                }
-                
-                videoCard.innerHTML = `
-                    <div class="video-thumbnail">
-                        ${thumbnailContent}
-                    </div>
-                    <div class="video-info">
-                        <h3>${video.title}</h3>
-                        <p>${video.description.substring(0, 80)}...</p>
+                allVideos.forEach(video => {
+                    const videoElement = document.createElement('div');
+                    videoElement.className = 'video-item';
+                    videoElement.innerHTML = `
+                        <div class="video-header">
+                            <div class="video-title">${video.title} <span style="color: var(--primary-dark); font-size: 0.9em;">(${video.level})</span> ${video.category === 'free' ? '<span style="color: var(--primary);">(مجاني)</span>' : ''}</div>
+                            <div class="video-date">${video.date}</div>
+                        </div>
+                        <div class="video-description">${video.description}</div>
                         <div class="video-meta">
                             <span>المدرس: ${video.teacherName}</span>
                             <span>المادة: ${video.subject}</span>
-                            <span>الصف: ${video.level}</span>
+                            <span>المشاهدات: ${video.views || 0}</span>
                         </div>
-                        <button class="play-btn" onclick="watchVideo(${video.id}, true)">
-                            <i class="fas fa-play"></i> مشاهدة المحاضرة
-                        </button>
-                    </div>
-                `;
-                freeVideoList.appendChild(videoCard);
-            });
-        }
-
-        // تحديث عدد الفيديوهات والطلاب
-        function updateTotalVideos() {
-            if (totalVideosSpan) {
-                totalVideosSpan.textContent = videosData.length + freeVideosData.length;
-            }
-        }
-
-        function updateTotalStudents() {
-            if (totalStudentsSpan) {
-                totalStudentsSpan.textContent = studentsData.length;
-            }
-        }
-
-        // مشاهدة فيديو
-        async function watchVideo(id, isFree = false) {
-            let video;
-            
-            if (isFree) {
-                video = freeVideosData.find(v => v.id === id);
-            } else {
-                video = videosData.find(v => v.id === id);
-            }
-            
-            if (video) {
-                if (video.type === 'youtube') {
-                    window.open(video.youtubeLink, '_blank');
-                } else {
-                    alert(`جاري تحميل الملف: ${video.fileName || 'غير متوفر'}\n\nحجم الملف: ${video.fileSize || 'غير متوفر'}\n\n(ملاحظة: هذا مجرد عرض، لا يتم تحميل الملف فعلياً في هذا الإصدار التجريبي).`);
-                }
-                video.views = (video.views || 0) + 1;
-                try {
-                    await saveVideo(video, isFree); // تحديث عدد المشاهدات
-                    renderUploadedVideos(); // Update teacher dashboard
-                    if (isFree) {
-                        renderFreeVideos(); // Update free lectures section
-                    } else if (currentStudent) {
-                        showTeacherVideosModal(video.teacherName); // Refresh the modal with updated views
-                    }
-                } catch (error) {
-                    console.error("خطأ في تحديث عدد المشاهدات:", error);
-                }
-            } else {
-                alert("الفيديو غير موجود.");
-            }
-        }
-
-        // تعديل فيديو
-        function editVideo(id) {
-            let video = videosData.find(v => v.id === id);
-            let isFreeVideo = false;
-            if (!video) {
-                video = freeVideosData.find(v => v.id === id);
-                isFreeVideo = true;
-            }
-            
-            if (video) {
-                document.getElementById('teacher-name-select').value = video.teacherName;
-                document.getElementById('video-title').value = video.title;
-                document.getElementById('video-description').value = video.description;
-                document.getElementById('video-subject').value = video.subject;
-                document.getElementById('video-level').value = video.level;
-                document.getElementById('content-type').value = video.type;
-                document.getElementById('content-category').value = video.category;
+                        <div class="video-actions">
+                            <button class="action-btn edit-btn" data-id="${video.id}">
+                                <i class="fas fa-edit"></i> تعديل
+                            </button>
+                            <button class="action-btn delete-btn" data-id="${video.id}" data-free="${video.category === 'free'}">
+                                <i class="fas fa-trash"></i> حذف
+                            </button>
+                        </div>
+                    `;
+                    uploadedVideosContainer.appendChild(videoElement);
+                });
                 
-                if (video.type === 'youtube') {
-                    document.getElementById('youtube-link').value = video.youtubeLink || '';
-                    toggleContentType();
-                } else {
-                    document.getElementById('video-file').value = '';
-                    toggleContentType();
+                // إضافة مستمعي الأحداث للأزرار الجديدة
+                document.querySelectorAll('.edit-btn').forEach(btn => {
+                    btn.addEventListener('click', function() {
+                        const videoId = this.getAttribute('data-id');
+                        editVideo(videoId);
+                    });
+                });
+                
+                document.querySelectorAll('.delete-btn').forEach(btn => {
+                    btn.addEventListener('click', function() {
+                        const videoId = this.getAttribute('data-id');
+                        const isFree = this.getAttribute('data-free') === 'true';
+                        deleteVideo(videoId, isFree);
+                    });
+                });
+            }
+
+            function renderFreeVideos() {
+                const freeVideoList = document.getElementById('free-video-list');
+                if (!freeVideoList) return;
+                
+                freeVideoList.innerHTML = '';
+                
+                if (freeVideosData.length === 0) {
+                    freeVideoList.innerHTML = `
+                        <div class="empty-message">
+                            <p>لا توجد محاضرات مجانية متاحة حالياً. الرجاء العودة لاحقاً.</p>
+                        </div>
+                    `;
+                    return;
                 }
                 
-                deleteVideo(id, isFreeVideo); // Delete the old entry so a new one can be created with updated info
-                
-                alert('يمكنك الآن تعديل بيانات الدرس وإعادة رفعه.');
-            } else {
-                alert('الفيديو غير موجود أو حدث خطأ في تحديده.');
-            }
-        }
+                freeVideosData.sort((a, b) => b.id - a.id);
 
-        // عرض جدول الطلاب
-        function renderStudentsTable() {
-            if (!studentsTableBody) return;
-            
-            studentsTableBody.innerHTML = '';
-            studentsCount.textContent = studentsData.length;
-            
-            if (studentsData.length === 0) {
-                studentsTableBody.innerHTML = `
-                    <tr>
-                        <td colspan="8" style="text-align: center; padding: 20px;">
-                            لا يوجد طلاب مسجلين بعد
-                        </td>
-                    </tr>
-                `;
-                return;
-            }
-            
-            studentsData.sort((a, b) => a.name.localeCompare(b.name, 'ar')); // Sort students by name
-            
-            studentsData.forEach((student, index) => {
-                let subjectsDisplay = '';
-                if (student.subjects && student.subjects.length > 0) {
-                    if (student.subjects.includes('جميع المواد')) {
-                        subjectsDisplay = 'جميع المواد';
-                    } else {
-                        subjectsDisplay = student.subjects.join('، ');
-                    }
-                } else {
-                    subjectsDisplay = 'غير محدد';
-                }
-                
-                const row = document.createElement('tr');
-                row.innerHTML = `
-                    <td>${index + 1}</td>
-                    <td>${student.name}</td>
-                    <td><strong>${student.code}</strong></td>
-                    <td>${student.grade}</td>
-                    <td>${subjectsDisplay}</td>
-                    <td>${student.date}</td>
-                    <td>${student.phone || 'غير متوفر'}</td>
-                    <td>
-                        <button class="action-btn delete-btn" onclick="deleteStudent('${student.code}')">
-                            <i class="fas fa-trash"></i> حذف
-                        </button>
-                    </td>
-                `;
-                studentsTableBody.appendChild(row);
-            });
-        }
-
-        // فتح نافذة تسجيل الدخول للتدريسين
-        teacherLoginBtn.addEventListener('click', function(e) {
-            e.preventDefault();
-            teacherLoginSection.style.display = 'flex';
-            loginError.style.display = 'none';
-            document.getElementById('username').value = '';
-            document.getElementById('password').value = '';
-        });
-
-        // إغلاق نافذة تسجيل الدخول للتدريسين
-        closeLoginBtn.addEventListener('click', function() {
-            teacherLoginSection.style.display = 'none';
-        });
-
-        // تسجيل الدخول للتدريسين
-        teacherLoginSubmit.addEventListener('click', function() {
-            const username = document.getElementById('username').value;
-            const password = document.getElementById('password').value;
-            
-            if(username === teacherCredentials.username && password === teacherCredentials.password) {
-                teacherLoginSection.style.display = 'none';
-                mainScreen.style.display = 'none';
-                teacherDashboard.style.display = 'block';
-                loginError.style.display = 'none';
-            } else {
-                loginError.style.display = 'block';
-            }
-        });
-
-        // فتح نافذة تسجيل الدخول للطلاب
-        studentLoginBtn.addEventListener('click', function(e) {
-            e.preventDefault();
-            studentLoginSection.style.display = 'flex';
-            studentLoginError.style.display = 'none';
-            studentCodeInput.value = '';
-        });
-
-        // إغلاق نافذة تسجيل الدخول للطلاب
-        closeStudentLoginBtn.addEventListener('click', function() {
-            studentLoginSection.style.display = 'none';
-        });
-
-        // تسجيل الدخول للطلاب
-        studentLoginSubmit.addEventListener('click', async function() {
-            const enteredCode = studentCodeInput.value.trim();
-            const currentDeviceId = localStorage.getItem('deviceId') || Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15);
-
-            const student = studentsData.find(s => s.code === enteredCode);
-
-            if (student) {
-                if (student.deviceId === null) {
-                    student.deviceId = currentDeviceId;
-                    try {
-                        // تحديث deviceId في قاعدة البيانات
-                        const { error } = await supabase
-                            .from(STUDENTS_TABLE)
-                            .update({ deviceId: currentDeviceId })
-                            .eq('code', enteredCode);
-                        
-                        if (error) throw error;
-                        
-                        currentStudent = student; // Store the current student object
-                        studentWelcomeMessage.textContent = `مرحباً بك، ${currentStudent.name} في صف ${currentStudent.grade}.`;
-                        renderStudentDashboard(); // Render teacher cards for the student
-                        
-                        studentLoginSection.style.display = 'none';
-                        mainScreen.style.display = 'none';
-                        studentDashboard.style.display = 'block';
-                        studentLoginError.style.display = 'none';
-                    } catch (error) {
-                        console.error("خطأ في تحديث deviceId للطالب:", error);
-                        studentLoginError.textContent = 'حدث خطأ أثناء ربط الكود بجهازك. الرجاء المحاولة مرة أخرى.';
-                        studentLoginError.style.display = 'block';
-                    }
-                } else if (student.deviceId === currentDeviceId) {
-                    currentStudent = student; // Store the current student object
-                    studentWelcomeMessage.textContent = `مرحباً بك، ${currentStudent.name} في صف ${currentStudent.grade}.`;
-                    renderStudentDashboard(); // Render teacher cards for the student
-
-                    studentLoginSection.style.display = 'none';
-                    mainScreen.style.display = 'none';
-                    studentDashboard.style.display = 'block';
-                    studentLoginError.style.display = 'none';
-                } else {
-                    studentLoginError.textContent = 'هذا الكود مسجل بالفعل على جهاز آخر. يرجى التواصل مع إدارة المعهد.';
-                    studentLoginError.style.display = 'block';
-                }
-            } else {
-                studentLoginError.textContent = 'الكود الذي أدخلته غير صحيح. يرجى المحاولة مرة أخرى.';
-                studentLoginError.style.display = 'block';
-            }
-        });
-
-        // Function to render the student dashboard with teacher cards
-        function renderStudentDashboard() {
-            if (!currentStudent || !studentTeacherCardsContainer) return;
-
-            studentTeacherCardsContainer.innerHTML = '';
-            
-            const studentGrade = currentStudent.grade;
-            const studentSubjects = currentStudent.subjects;
-
-            // Get unique teachers who teach the student's grade and subjects
-            const relevantVideos = videosData.filter(video => 
-                video.level === studentGrade && 
-                (studentSubjects.includes('جميع المواد') || studentSubjects.includes(video.subject))
-            );
-
-            const uniqueTeachers = [...new Set(relevantVideos.map(video => video.teacherName))];
-            
-            if (uniqueTeachers.length === 0) {
-                studentTeacherCardsContainer.innerHTML = `
-                    <div class="empty-message" style="grid-column: 1 / -1;">
-                        <p>لا يوجد مدرسون متاحون لصفك أو لموادك حالياً. الرجاء العودة لاحقاً.</p>
-                    </div>
-                `;
-                return;
-            }
-
-            // Limit to 7 teacher cards as requested by the user
-            const teachersToDisplay = uniqueTeachers.slice(0, 7);
-
-            teachersToDisplay.forEach(teacherName => {
-                const teacherCard = document.createElement('div');
-                teacherCard.className = 'teacher-card';
-                teacherCard.innerHTML = `
-                    <div class="teacher-icon">
-                        <i class="fas fa-user-tie"></i>
-                    </div>
-                    <h3>${teacherName}</h3>
-                    <p>المدرس لمواد ${studentSubjects.join('، ')} لصف ${studentGrade}.</p>
-                    <button class="btn" onclick="showTeacherVideosModal('${teacherName}')">
-                        <i class="fas fa-book-open"></i> عرض الدروس
-                    </button>
-                `;
-                studentTeacherCardsContainer.appendChild(teacherCard);
-            });
-        }
-
-        // Show modal with selected teacher's videos
-        function showTeacherVideosModal(teacherName) {
-            if (!currentStudent || !teacherModalVideoList) return;
-
-            teacherVideosModalTitle.innerHTML = `<i class="fas fa-video"></i> شروحات ودروس الأستاذ/ة ${teacherName}`;
-            teacherModalVideoList.innerHTML = '';
-            teacherVideosEmptyMessage.style.display = 'none';
-
-            const studentGrade = currentStudent.grade;
-            const studentSubjects = currentStudent.subjects;
-
-            const teacherVideos = videosData.filter(video => 
-                video.teacherName === teacherName &&
-                video.level === studentGrade && 
-                (studentSubjects.includes('جميع المواد') || studentSubjects.includes(video.subject))
-            ).sort((a, b) => b.id - a.id); // Sort by newest first
-
-            if (teacherVideos.length === 0) {
-                teacherVideosEmptyMessage.style.display = 'block';
-            } else {
-                teacherVideos.forEach(video => {
+                freeVideosData.forEach(video => {
                     const videoCard = document.createElement('div');
                     videoCard.className = 'student-video-card';
                     
@@ -3118,149 +2266,875 @@
                             <h3>${video.title}</h3>
                             <p>${video.description.substring(0, 80)}...</p>
                             <div class="video-meta">
+                                <span>المدرس: ${video.teacherName}</span>
                                 <span>المادة: ${video.subject}</span>
-                                <span>المشاهدات: ${video.views || 0}</span>
+                                <span>الصف: ${video.level}</span>
                             </div>
-                            <button class="play-btn" onclick="watchVideo(${video.id}, false)">
-                                <i class="fas fa-play"></i> مشاهدة الدرس
+                            <button class="play-btn" data-id="${video.id}" data-free="true">
+                                <i class="fas fa-play"></i> مشاهدة المحاضرة
                             </button>
                         </div>
                     `;
-                    teacherModalVideoList.appendChild(videoCard);
+                    freeVideoList.appendChild(videoCard);
+                });
+                
+                // إضافة مستمعي الأحداث للأزرار الجديدة
+                document.querySelectorAll('.play-btn[data-free="true"]').forEach(btn => {
+                    btn.addEventListener('click', function() {
+                        const videoId = this.getAttribute('data-id');
+                        watchVideo(videoId, true);
+                    });
                 });
             }
-            teacherVideosModal.style.display = 'flex';
-        }
 
-        // Close teacher videos modal
-        closeTeacherVideosModal.addEventListener('click', () => {
-            teacherVideosModal.style.display = 'none';
-        });
-
-        // فتح قسم المحاضرات المجانية
-        freeLecturesBtn.addEventListener('click', function(e) {
-            e.preventDefault();
-            mainScreen.style.display = 'none';
-            freeLecturesSection.style.display = 'block';
-            renderFreeVideos(); // Ensure free videos are rendered
-        });
-
-        // العودة من المحاضرات المجانية
-        freeLecturesBack.addEventListener('click', function() {
-            freeLecturesSection.style.display = 'none';
-            mainScreen.style.display = 'flex';
-        });
-
-        // الانتقال للتسجيل من قسم المحاضرات المجانية
-        registerFromFree.addEventListener('click', function() {
-            freeLecturesSection.style.display = 'none';
-            studentLoginSection.style.display = 'flex';
-        });
-
-        // حفظ البيانات عند تغيير الحساب
-        teacherLogout.addEventListener('click', async function() {
-            teacherDashboard.style.display = 'none';
-            mainScreen.style.display = 'flex';
-        });
-
-        studentLogout.addEventListener('click', async function() {
-            currentStudent = null; // Clear the student object on logout
-            studentDashboard.style.display = 'none';
-            mainScreen.style.display = 'flex';
-        });
-
-        // Dark Mode Toggle
-        darkModeToggle.addEventListener('click', () => {
-            document.body.classList.toggle('dark-mode');
-            const isDarkMode = document.body.classList.contains('dark-mode');
-            localStorage.setItem('darkMode', isDarkMode);
-            if (isDarkMode) {
-                darkModeToggle.innerHTML = '<i class="fas fa-sun"></i>';
-            } else {
-                darkModeToggle.innerHTML = '<i class="fas fa-moon"></i>';
+            function updateTotalStudents() {
+                const totalStudentsSpan = document.getElementById('total-students');
+                if (totalStudentsSpan) {
+                    totalStudentsSpan.textContent = studentsData.length;
+                }
             }
-        });
 
-        // Apply saved dark mode preference
-        const savedDarkMode = localStorage.getItem('darkMode');
-        if (savedDarkMode === 'true') {
-            document.body.classList.add('dark-mode');
-            darkModeToggle.innerHTML = '<i class="fas fa-sun"></i>';
-        } else {
-            darkModeToggle.innerHTML = '<i class="fas fa-moon"></i>';
-        }
-        
-        // استدعاء التهيئة عند تحميل الصفحة
-        document.addEventListener('DOMContentLoaded', function() {
-            initializeApp();
-            
-            // تهيئة اختيار المواد المتعدد
-            subjectsDropdown.addEventListener('click', function(e) {
-                e.stopPropagation();
-                subjectsOptions.classList.toggle('show');
-            });
-            
-            document.addEventListener('click', function() {
-                subjectsOptions.classList.remove('show');
-            });
-            
-            subjectsOptions.addEventListener('click', function(e) {
-                e.stopPropagation();
-            });
-            
-            const options = subjectsOptions.querySelectorAll('.multi-select-option');
-            options.forEach(option => {
-                option.addEventListener('click', function() {
-                    const value = this.getAttribute('data-value');
-                    
-                    if (value === 'جميع المواد') {
-                        if (selectedSubjects.includes('جميع المواد')) {
-                             selectedSubjects = [];
+            function renderStudentsTable() {
+                const studentsTableBody = document.getElementById('students-table-body');
+                if (!studentsTableBody) return;
+                
+                studentsTableBody.innerHTML = '';
+                
+                const studentsCount = document.getElementById('students-count');
+                if (studentsCount) studentsCount.textContent = studentsData.length;
+                
+                if (studentsData.length === 0) {
+                    studentsTableBody.innerHTML = `
+                        <tr>
+                            <td colspan="8" style="text-align: center; padding: 20px;">
+                                لا يوجد طلاب مسجلين بعد
+                            </td>
+                        </tr>
+                    `;
+                    return;
+                }
+                
+                studentsData.sort((a, b) => a.name.localeCompare(b.name, 'ar'));
+                
+                studentsData.forEach((student, index) => {
+                    let subjectsDisplay = '';
+                    if (student.subjects && student.subjects.length > 0) {
+                        if (student.subjects.includes('جميع المواد')) {
+                            subjectsDisplay = 'جميع المواد';
                         } else {
-                            selectedSubjects = ['جميع المواد'];
+                            subjectsDisplay = student.subjects.join('، ');
                         }
                     } else {
-                        const allSubjectsIndex = selectedSubjects.indexOf('جميع المواد');
-                        if (allSubjectsIndex !== -1) {
-                            selectedSubjects.splice(allSubjectsIndex, 1);
-                        }
-
-                        const index = selectedSubjects.indexOf(value);
-                        if (index === -1) {
-                            selectedSubjects.push(value);
-                        } else {
-                            selectedSubjects.splice(index, 1);
-                        }
+                        subjectsDisplay = 'غير محدد';
                     }
                     
-                    updateSelectedSubjectsDisplay();
+                    const row = document.createElement('tr');
+                    row.innerHTML = `
+                        <td>${index + 1}</td>
+                        <td>${student.name}</td>
+                        <td><strong>${student.code}</strong></td>
+                        <td>${student.grade}</td>
+                        <td>${subjectsDisplay}</td>
+                        <td>${student.date}</td>
+                        <td>${student.phone || 'غير متوفر'}</td>
+                        <td>
+                            <button class="action-btn delete-btn" data-code="${student.code}">
+                                <i class="fas fa-trash"></i> حذف
+                            </button>
+                        </td>
+                    `;
+                    studentsTableBody.appendChild(row);
                 });
-            });
+                
+                // إضافة مستمعي الأحداث لأزرار الحذف
+                document.querySelectorAll('.delete-btn[data-code]').forEach(btn => {
+                    btn.addEventListener('click', function() {
+                        const studentCode = this.getAttribute('data-code');
+                        deleteStudent(studentCode);
+                    });
+                });
+            }
+
+            function renderStudentDashboard() {
+                if (!currentStudent) return;
+
+                const studentTeacherCardsContainer = document.getElementById('student-teacher-cards');
+                if (!studentTeacherCardsContainer) return;
+                
+                studentTeacherCardsContainer.innerHTML = '';
+                
+                const studentGrade = currentStudent.grade;
+                const studentSubjects = currentStudent.subjects;
+
+                const relevantVideos = videosData.filter(video => 
+                    video.level === studentGrade && 
+                    (studentSubjects.includes('جميع المواد') || studentSubjects.includes(video.subject))
+                );
+
+                const uniqueTeachers = [...new Set(relevantVideos.map(video => video.teacherName))];
+                
+                if (uniqueTeachers.length === 0) {
+                    studentTeacherCardsContainer.innerHTML = `
+                        <div class="empty-message" style="grid-column: 1 / -1;">
+                            <p>لا يوجد مدرسون متاحون لصفك أو لموادك حالياً. الرجاء العودة لاحقاً.</p>
+                        </div>
+                    `;
+                    return;
+                }
+
+                const teachersToDisplay = uniqueTeachers.slice(0, 7);
+
+                teachersToDisplay.forEach(teacherName => {
+                    const teacherCard = document.createElement('div');
+                    teacherCard.className = 'teacher-card';
+                    teacherCard.innerHTML = `
+                        <div class="teacher-icon">
+                            <i class="fas fa-user-tie"></i>
+                        </div>
+                        <h3>${teacherName}</h3>
+                        <p>المدرس لمواد ${studentSubjects.join('، ')} لصف ${studentGrade}.</p>
+                        <button class="btn" data-teacher="${teacherName}">
+                            <i class="fas fa-book-open"></i> عرض الدروس
+                        </button>
+                    `;
+                    studentTeacherCardsContainer.appendChild(teacherCard);
+                });
+                
+                // إضافة مستمعي الأحداث للأزرار الجديدة
+                document.querySelectorAll('.btn[data-teacher]').forEach(btn => {
+                    btn.addEventListener('click', function() {
+                        const teacherName = this.getAttribute('data-teacher');
+                        showTeacherVideosModal(teacherName);
+                    });
+                });
+            }
+
+            function showTeacherVideosModal(teacherName) {
+                if (!currentStudent) return;
+
+                const teacherVideosModalTitle = document.getElementById('teacher-videos-modal-title');
+                const teacherModalVideoList = document.getElementById('teacher-modal-video-list');
+                const teacherVideosEmptyMessage = document.getElementById('teacher-videos-empty-message');
+                
+                if (teacherVideosModalTitle) teacherVideosModalTitle.innerHTML = `<i class="fas fa-video"></i> شروحات ودروس الأستاذ/ة ${teacherName}`;
+                if (teacherModalVideoList) teacherModalVideoList.innerHTML = '';
+                if (teacherVideosEmptyMessage) teacherVideosEmptyMessage.style.display = 'none';
+
+                const studentGrade = currentStudent.grade;
+                const studentSubjects = currentStudent.subjects;
+
+                const teacherVideos = videosData.filter(video => 
+                    video.teacherName === teacherName &&
+                    video.level === studentGrade && 
+                    (studentSubjects.includes('جميع المواد') || studentSubjects.includes(video.subject))
+                ).sort((a, b) => b.id - a.id);
+
+                if (!teacherModalVideoList) return;
+                
+                if (teacherVideos.length === 0) {
+                    if (teacherVideosEmptyMessage) teacherVideosEmptyMessage.style.display = 'block';
+                } else {
+                    teacherVideos.forEach(video => {
+                        const videoCard = document.createElement('div');
+                        videoCard.className = 'student-video-card';
+                        
+                        let thumbnailContent = '<i class="fas fa-play-circle"></i>';
+                        if (video.type === 'youtube') {
+                            thumbnailContent = '<i class="fab fa-youtube" style="color: white;"></i>';
+                        } else if (video.type === 'file') {
+                            thumbnailContent = '<i class="fas fa-file-video"></i>';
+                        }
+                        
+                        videoCard.innerHTML = `
+                            <div class="video-thumbnail">
+                                ${thumbnailContent}
+                            </div>
+                            <div class="video-info">
+                                <h3>${video.title}</h3>
+                                <p>${video.description.substring(0, 80)}...</p>
+                                <div class="video-meta">
+                                    <span>المادة: ${video.subject}</span>
+                                    <span>المشاهدات: ${video.views || 0}</span>
+                                </div>
+                                <button class="play-btn" data-id="${video.id}" data-free="false">
+                                    <i class="fas fa-play"></i> مشاهدة الدرس
+                                </button>
+                            </div>
+                        `;
+                        teacherModalVideoList.appendChild(videoCard);
+                    });
+                    
+                    // إضافة مستمعي الأحداث للأزرار الجديدة
+                    document.querySelectorAll('.play-btn[data-id]').forEach(btn => {
+                        btn.addEventListener('click', function() {
+                            const videoId = this.getAttribute('data-id');
+                            const isFree = this.getAttribute('data-free') === 'true';
+                            watchVideo(videoId, isFree);
+                        });
+                    });
+                }
+                
+                const teacherVideosModal = document.getElementById('teacher-videos-modal');
+                if (teacherVideosModal) teacherVideosModal.style.display = 'flex';
+            }
+
+            function updateSelectedSubjectsDisplay() {
+                const selectedSubjectsContainer = document.getElementById('selected-subjects');
+                const subjectsDropdown = document.getElementById('subjects-dropdown');
+                
+                if (!selectedSubjectsContainer || !subjectsDropdown) return;
+                
+                selectedSubjectsContainer.innerHTML = '';
+                if (selectedSubjects.length === 0) {
+                    subjectsDropdown.textContent = 'اختر المواد الدراسية';
+                    const icon = document.createElement('i');
+                    icon.className = 'fas fa-chevron-down';
+                    subjectsDropdown.appendChild(icon);
+                    return;
+                }
+
+                if (selectedSubjects.includes('جميع المواد')) {
+                    const span = document.createElement('span');
+                    span.className = 'selected-subject';
+                    span.textContent = 'جميع المواد';
+                    const removeIcon = document.createElement('i');
+                    removeIcon.className = 'fas fa-times-circle';
+                    removeIcon.addEventListener('click', (e) => {
+                        e.stopPropagation();
+                        selectedSubjects = [];
+                        updateSelectedSubjectsDisplay();
+                    });
+                    span.appendChild(removeIcon);
+                    selectedSubjectsContainer.appendChild(span);
+                    subjectsDropdown.textContent = 'تم الاختيار';
+                    const icon = document.createElement('i');
+                    icon.className = 'fas fa-chevron-down';
+                    subjectsDropdown.appendChild(icon);
+                    return;
+                }
+                
+                selectedSubjects.forEach(subject => {
+                    const span = document.createElement('span');
+                    span.className = 'selected-subject';
+                    span.textContent = subject;
+                    const removeIcon = document.createElement('i');
+                    removeIcon.className = 'fas fa-times-circle';
+                    removeIcon.addEventListener('click', (e) => {
+                        e.stopPropagation();
+                        selectedSubjects = selectedSubjects.filter(s => s !== subject);
+                        updateSelectedSubjectsDisplay();
+                    });
+                    span.appendChild(removeIcon);
+                    selectedSubjectsContainer.appendChild(span);
+                });
+                subjectsDropdown.textContent = 'تم الاختيار';
+                const icon = document.createElement('i');
+                icon.className = 'fas fa-chevron-down';
+                subjectsDropdown.appendChild(icon);
+            }
             
-            // عرض إدارة الطلاب
-            viewStudentsBtn.addEventListener('click', function() {
-                renderStudentsTable();
-                studentManagementModal.style.display = 'flex';
-            });
+            // ==================== وظائف التفاعل ====================
+            function toggleContentType() {
+                const contentType = document.getElementById('content-type')?.value;
+                if (!contentType) return;
+                
+                if (contentType === 'file') {
+                    document.getElementById('file-upload-group').style.display = 'block';
+                    document.getElementById('youtube-link-group').style.display = 'none';
+                } else {
+                    document.getElementById('file-upload-group').style.display = 'none';
+                    document.getElementById('youtube-link-group').style.display = 'block';
+                }
+            }
+            
+            function watchVideo(id, isFree = false) {
+                let video;
+                
+                if (isFree) {
+                    video = freeVideosData.find(v => v.id == id);
+                } else {
+                    video = videosData.find(v => v.id == id);
+                }
+                
+                if (video) {
+                    if (video.type === 'youtube') {
+                        window.open(video.youtubeLink, '_blank');
+                    } else {
+                        alert(`جاري تحميل الملف: ${video.fileName || 'غير متوفر'}\n\nحجم الملف: ${video.fileSize || 'غير متوفر'}\n\n(ملاحظة: هذا مجرد عرض، لا يتم تحميل الملف فعلياً في هذا الإصدار التجريبي).`);
+                    }
+                    video.views = (video.views || 0) + 1;
+                    showNotification('تم تحديث عدد المشاهدات');
+                } else {
+                    alert("الفيديو غير موجود.");
+                }
+            }
+            
+            function editVideo(id) {
+                let video = videosData.find(v => v.id == id);
+                let isFreeVideo = false;
+                if (!video) {
+                    video = freeVideosData.find(v => v.id == id);
+                    isFreeVideo = true;
+                }
+                
+                if (video) {
+                    document.getElementById('teacher-name-select').value = video.teacherName;
+                    document.getElementById('video-title').value = video.title;
+                    document.getElementById('video-description').value = video.description;
+                    document.getElementById('video-subject').value = video.subject;
+                    document.getElementById('video-level').value = video.level;
+                    document.getElementById('content-type').value = video.type;
+                    document.getElementById('content-category').value = video.category;
+                    
+                    if (video.type === 'youtube') {
+                        document.getElementById('youtube-link').value = video.youtubeLink || '';
+                        toggleContentType();
+                    } else {
+                        document.getElementById('video-file').value = '';
+                        toggleContentType();
+                    }
+                    
+                    // حذف الفيديو القديم
+                    if (isFreeVideo) {
+                        const index = freeVideosData.findIndex(v => v.id == id);
+                        if (index !== -1) freeVideosData.splice(index, 1);
+                    } else {
+                        const index = videosData.findIndex(v => v.id == id);
+                        if (index !== -1) videosData.splice(index, 1);
+                    }
+                    
+                    renderUploadedVideos();
+                    renderFreeVideos();
+                    
+                    alert('يمكنك الآن تعديل بيانات الدرس وإعادة رفعه.');
+                } else {
+                    alert('الفيديو غير موجود أو حدث خطأ في تحديده.');
+                }
+            }
+            
+            function deleteVideo(id, isFree = false) {
+                if (!confirm('هل أنت متأكد من حذف هذا الدرس؟')) return;
+                
+                if (isFree) {
+                    const index = freeVideosData.findIndex(v => v.id == id);
+                    if (index !== -1) freeVideosData.splice(index, 1);
+                } else {
+                    const index = videosData.findIndex(v => v.id == id);
+                    if (index !== -1) videosData.splice(index, 1);
+                }
+                
+                renderUploadedVideos();
+                renderFreeVideos();
+                showNotification('تم حذف الفيديو بنجاح');
+            }
+            
+            function deleteStudent(code) {
+                if (!confirm('هل أنت متأكد من حذف هذا الطالب؟ سيتم حذف كوده أيضاً.')) return;
+                
+                const index = studentsData.findIndex(s => s.code === code);
+                if (index !== -1) {
+                    studentsData.splice(index, 1);
+                    const codeIndex = studentCodes.indexOf(code);
+                    if (codeIndex !== -1) studentCodes.splice(codeIndex, 1);
+                    updateTotalStudents();
+                    renderStudentsTable();
+                    showNotification('تم حذف الطالب بنجاح');
+                }
+            }
+            
+            // ==================== تهيئة التطبيق ====================
+            function initializeApp() {
+                showLoader();
+                setTimeout(() => {
+                    // بيانات الطلاب الافتراضية
+                    studentsData.push(
+                        {
+                            id: 1,
+                            name: "محمد أحمد",
+                            phone: "07701234567",
+                            email: "mohamed@example.com",
+                            grade: "سادس ابتدائي",
+                            subjects: ["رياضيات", "لغة عربية"],
+                            code: "STU2025-ABC12",
+                            date: "2025-07-01",
+                            deviceId: null
+                        },
+                        {
+                            id: 2,
+                            name: "سارة علي",
+                            phone: "07707654321",
+                            email: "sara@example.com",
+                            grade: "اول متوسط",
+                            subjects: ["جميع المواد"],
+                            code: "STU2025-DEF34",
+                            date: "2025-07-05",
+                            deviceId: null
+                        }
+                    );
+                    
+                    // بيانات الفيديوهات الافتراضية
+                    videosData.push(
+                        {
+                            id: 1,
+                            teacherName: "أ. محمد أحمد",
+                            title: "الدرس الأول في الرياضيات",
+                            description: "مقدمة في الجبر وحل المعادلات البسيطة",
+                            subject: "رياضيات",
+                            level: "سادس ابتدائي",
+                            date: "2025-07-10",
+                            views: 15,
+                            type: "youtube",
+                            youtubeLink: "https://www.youtube.com/watch?v=example1",
+                            category: "paid"
+                        },
+                        {
+                            id: 2,
+                            teacherName: "أ. سارة علي",
+                            title: "قواعد اللغة العربية",
+                            description: "شرح مفصل لقواعد النحو والإعراب",
+                            subject: "لغة عربية",
+                            level: "اول متوسط",
+                            date: "2025-07-12",
+                            views: 22,
+                            type: "file",
+                            fileName: "arabic-grammar.mp4",
+                            fileSize: "45.2 MB",
+                            category: "paid"
+                        }
+                    );
+                    
+                    // بيانات الفيديوهات المجانية الافتراضية
+                    freeVideosData.push(
+                        {
+                            id: 1,
+                            teacherName: "أ. خالد محمود",
+                            title: "مقدمة في الفيزياء",
+                            description: "شرح مبسط للمفاهيم الأساسية في الفيزياء",
+                            subject: "فيزياء",
+                            level: "ثالث متوسط",
+                            date: "2025-07-05",
+                            views: 42,
+                            type: "youtube",
+                            youtubeLink: "https://www.youtube.com/watch?v=free1",
+                            category: "free"
+                        },
+                        {
+                            id: 2,
+                            teacherName: "أ. ليلى فؤاد",
+                            title: "أساسيات الكيمياء",
+                            description: "تعريف العناصر والمركبات والتفاعلات الكيميائية",
+                            subject: "كيمياء",
+                            level: "ثاني متوسط",
+                            date: "2025-07-08",
+                            views: 28,
+                            type: "youtube",
+                            youtubeLink: "https://www.youtube.com/watch?v=free2",
+                            category: "free"
+                        }
+                    );
+                    
+                    // تحديث واجهة المستخدم
+                    updateTotalStudents();
+                    renderUploadedVideos();
+                    renderFreeVideos();
+                    hideLoader();
+                    showNotification('تم تحميل البيانات بنجاح');
+                }, 1500);
+            }
+            
+            // ==================== إعداد الأحداث ====================
+            function setupEventListeners() {
+                // Dark Mode Toggle
+                const darkModeToggle = document.getElementById('dark-mode-toggle');
+                if (darkModeToggle) {
+                    darkModeToggle.addEventListener('click', () => {
+                        document.body.classList.toggle('dark-mode');
+                        const isDarkMode = document.body.classList.contains('dark-mode');
+                        localStorage.setItem('darkMode', isDarkMode);
+                        if (isDarkMode) {
+                            darkModeToggle.innerHTML = '<i class="fas fa-sun"></i>';
+                        } else {
+                            darkModeToggle.innerHTML = '<i class="fas fa-moon"></i>';
+                        }
+                    });
+                }
+                
+                // Apply saved dark mode preference
+                const savedDarkMode = localStorage.getItem('darkMode');
+                if (savedDarkMode === 'true') {
+                    document.body.classList.add('dark-mode');
+                    if (darkModeToggle) darkModeToggle.innerHTML = '<i class="fas fa-sun"></i>';
+                } else if (darkModeToggle) {
+                    darkModeToggle.innerHTML = '<i class="fas fa-moon"></i>';
+                }
+                
+                // Teacher login
+                const teacherLoginBtn = document.getElementById('teacher-login-btn');
+                const teacherLoginSection = document.getElementById('teacher-login');
+                const closeLoginBtn = document.getElementById('close-login');
+                const teacherLoginSubmit = document.getElementById('teacher-login-submit');
+                const loginError = document.getElementById('login-error');
+                
+                if (teacherLoginBtn) {
+                    teacherLoginBtn.addEventListener('click', function(e) {
+                        e.preventDefault();
+                        if (teacherLoginSection) teacherLoginSection.style.display = 'flex';
+                        if (loginError) loginError.style.display = 'none';
+                        document.getElementById('username').value = '';
+                        document.getElementById('password').value = '';
+                    });
+                }
+                
+                if (closeLoginBtn) {
+                    closeLoginBtn.addEventListener('click', function() {
+                        if (teacherLoginSection) teacherLoginSection.style.display = 'none';
+                    });
+                }
+                
+                if (teacherLoginSubmit) {
+                    teacherLoginSubmit.addEventListener('click', function() {
+                        const username = document.getElementById('username')?.value;
+                        const password = document.getElementById('password')?.value;
+                        
+                        if (username === teacherCredentials.username && password === teacherCredentials.password) {
+                            if (teacherLoginSection) teacherLoginSection.style.display = 'none';
+                            document.getElementById('main-screen').style.display = 'none';
+                            document.getElementById('teacher-dashboard').style.display = 'block';
+                            if (loginError) loginError.style.display = 'none';
+                        } else if (loginError) {
+                            loginError.style.display = 'block';
+                        }
+                    });
+                }
+                
+                // Student login
+                const studentLoginBtn = document.getElementById('student-login-btn');
+                const studentLoginSection = document.getElementById('student-login-section');
+                const closeStudentLoginBtn = document.getElementById('close-student-login');
+                const studentLoginSubmit = document.getElementById('student-login-submit');
+                const studentLoginError = document.getElementById('student-login-error');
+                const studentCodeInput = document.getElementById('student-code-input');
+                
+                if (studentLoginBtn) {
+                    studentLoginBtn.addEventListener('click', function(e) {
+                        e.preventDefault();
+                        if (studentLoginSection) studentLoginSection.style.display = 'flex';
+                        if (studentLoginError) studentLoginError.style.display = 'none';
+                        if (studentCodeInput) studentCodeInput.value = '';
+                    });
+                }
+                
+                if (closeStudentLoginBtn) {
+                    closeStudentLoginBtn.addEventListener('click', function() {
+                        if (studentLoginSection) studentLoginSection.style.display = 'none';
+                    });
+                }
+                
+                if (studentLoginSubmit) {
+                    studentLoginSubmit.addEventListener('click', function() {
+                        if (!studentCodeInput) return;
+                        
+                        const enteredCode = studentCodeInput.value.trim();
+                        const student = studentsData.find(s => s.code === enteredCode);
 
-            // إغلاق نافذة إدارة الطلاب
-            closeManagementModal.addEventListener('click', function() {
-                studentManagementModal.style.display = 'none';
-            });
+                        if (student) {
+                            currentStudent = student;
+                            const studentWelcomeMessage = document.getElementById('student-welcome-message');
+                            if (studentWelcomeMessage) studentWelcomeMessage.textContent = `مرحباً بك، ${currentStudent.name} في صف ${currentStudent.grade}.`;
+                            renderStudentDashboard();
+                            
+                            if (studentLoginSection) studentLoginSection.style.display = 'none';
+                            document.getElementById('main-screen').style.display = 'none';
+                            document.getElementById('student-dashboard').style.display = 'block';
+                            if (studentLoginError) studentLoginError.style.display = 'none';
+                        } else {
+                            if (studentLoginError) {
+                                studentLoginError.textContent = 'الكود الذي أدخلته غير صحيح. يرجى المحاولة مرة أخرى.';
+                                studentLoginError.style.display = 'block';
+                            }
+                        }
+                    });
+                }
+                
+                // Teacher dashboard events
+                const uploadVideoBtn = document.getElementById('upload-video');
+                if (uploadVideoBtn) {
+                    uploadVideoBtn.addEventListener('click', function() {
+                        const teacherName = document.getElementById('teacher-name-select')?.value;
+                        const title = document.getElementById('video-title')?.value;
+                        const description = document.getElementById('video-description')?.value;
+                        const subject = document.getElementById('video-subject')?.value;
+                        const level = document.getElementById('video-level')?.value;
+                        const contentType = document.getElementById('content-type')?.value;
+                        const contentCategory = document.getElementById('content-category')?.value;
+                        
+                        if (title && description && teacherName) {
+                            const newVideo = {
+                                id: videosData.length + freeVideosData.length + 1,
+                                teacherName,
+                                title,
+                                description,
+                                subject,
+                                level,
+                                date: new Date().toISOString().split('T')[0],
+                                views: 0,
+                                rating: 0,
+                                type: contentType,
+                                category: contentCategory
+                            };
+                            
+                            if (contentType === 'file') {
+                                const fileInput = document.getElementById('video-file');
+                                if (fileInput && fileInput.files.length > 0) {
+                                    newVideo.fileName = fileInput.files[0].name;
+                                    newVideo.fileSize = (fileInput.files[0].size / (1024 * 1024)).toFixed(2) + ' MB';
+                                } else {
+                                    showNotification('الرجاء اختيار ملف الفيديو', true);
+                                    return;
+                                }
+                            } else {
+                                const youtubeLink = document.getElementById('youtube-link')?.value;
+                                if (youtubeLink) {
+                                    newVideo.youtubeLink = youtubeLink;
+                                } else {
+                                    showNotification('الرجاء إدخال رابط يوتيوب صحيح', true);
+                                    return;
+                                }
+                            }
+                            
+                            if (contentCategory === 'free') {
+                                freeVideosData.push(newVideo);
+                            } else {
+                                videosData.push(newVideo);
+                            }
+                            
+                            document.getElementById('video-title').value = '';
+                            document.getElementById('video-description').value = '';
+                            document.getElementById('video-file').value = '';
+                            document.getElementById('youtube-link').value = '';
+                            document.getElementById('content-type').value = 'file';
+                            toggleContentType();
+                            document.getElementById('content-category').value = 'paid';
+                            document.getElementById('video-subject').value = 'رياضيات';
+                            document.getElementById('video-level').value = 'التهجي';
+                            document.getElementById('teacher-name-select').value = 'أ. محمد أحمد';
+                            
+                            renderUploadedVideos();
+                            renderFreeVideos();
+                            showNotification('تم رفع الفيديو بنجاح');
+                        } else {
+                            showNotification('الرجاء ملء جميع الحقول المطلوبة', true);
+                        }
+                    });
+                }
+                
+                const copyCodeBtn = document.getElementById('copy-code-btn');
+                if (copyCodeBtn) {
+                    copyCodeBtn.addEventListener('click', function() {
+                        const studentCodeGenerated = document.getElementById('student-code-generated');
+                        if (!studentCodeGenerated) return;
+                        
+                        const code = studentCodeGenerated.textContent;
+                        navigator.clipboard.writeText(code).then(() => {
+                            alert('تم نسخ الكود بنجاح!');
+                        }).catch(err => {
+                            console.error('Failed to copy: ', err);
+                            alert('حدث خطأ أثناء نسخ الكود');
+                        });
+                    });
+                }
+                
+                const registerNewStudentBtn = document.getElementById('register-new-student');
+                if (registerNewStudentBtn) {
+                    registerNewStudentBtn.addEventListener('click', function() {
+                        const name = document.getElementById('new-student-name')?.value.trim();
+                        const phone = document.getElementById('new-student-phone')?.value.trim();
+                        const email = document.getElementById('new-student-email')?.value.trim();
+                        const grade = document.getElementById('new-student-grade')?.value;
+                        
+                        if (name && phone && selectedSubjects.length > 0) {
+                            const code = generateStudentCode();
+                            
+                            const student = {
+                                id: studentsData.length + 1,
+                                name,
+                                phone,
+                                email,
+                                grade,
+                                subjects: [...selectedSubjects],
+                                code,
+                                date: new Date().toISOString().split('T')[0],
+                                deviceId: null
+                            };
+                            
+                            studentsData.push(student);
+                            studentCodes.push(code);
+                            
+                            const studentCodeGenerated = document.getElementById('student-code-generated');
+                            const generatedCodeDisplay = document.getElementById('generated-code-display');
+                            
+                            if (studentCodeGenerated) studentCodeGenerated.textContent = student.code;
+                            if (generatedCodeDisplay) generatedCodeDisplay.style.display = 'block';
+                            
+                            document.getElementById('new-student-name').value = '';
+                            document.getElementById('new-student-phone').value = '';
+                            document.getElementById('new-student-email').value = '';
+                            document.getElementById('new-student-grade').value = 'التهجي';
+                            selectedSubjects = [];
+                            updateSelectedSubjectsDisplay();
+                            updateTotalStudents();
+                            
+                            showNotification('تم تسجيل الطالب بنجاح');
+                            
+                            setTimeout(() => {
+                                if (generatedCodeDisplay) generatedCodeDisplay.style.display = 'none';
+                            }, 10000);
+                        } else {
+                            showNotification('الرجاء إدخال الاسم ورقم الهاتف واختيار الصف الدراسي ومادة واحدة على الأقل', true);
+                        }
+                    });
+                }
+                
+                const viewStudentsBtn = document.getElementById('view-students-btn');
+                if (viewStudentsBtn) {
+                    viewStudentsBtn.addEventListener('click', function() {
+                        renderStudentsTable();
+                        const studentManagementModal = document.getElementById('student-management-modal');
+                        if (studentManagementModal) studentManagementModal.style.display = 'flex';
+                    });
+                }
+                
+                const closeManagementModal = document.getElementById('close-management-modal');
+                if (closeManagementModal) {
+                    closeManagementModal.addEventListener('click', function() {
+                        const studentManagementModal = document.getElementById('student-management-modal');
+                        if (studentManagementModal) studentManagementModal.style.display = 'none';
+                    });
+                }
+                
+                const printStudentsBtn = document.getElementById('print-students-btn');
+                if (printStudentsBtn) {
+                    printStudentsBtn.addEventListener('click', function() {
+                        window.print();
+                    });
+                }
+                
+                // Free lectures events
+                const freeLecturesBtn = document.getElementById('free-lectures-btn');
+                if (freeLecturesBtn) {
+                    freeLecturesBtn.addEventListener('click', function(e) {
+                        e.preventDefault();
+                        document.getElementById('main-screen').style.display = 'none';
+                        document.getElementById('free-lectures-section').style.display = 'block';
+                        renderFreeVideos();
+                    });
+                }
+                
+                const freeLecturesBack = document.getElementById('free-lectures-back');
+                if (freeLecturesBack) {
+                    freeLecturesBack.addEventListener('click', function() {
+                        document.getElementById('free-lectures-section').style.display = 'none';
+                        document.getElementById('main-screen').style.display = 'flex';
+                    });
+                }
+                
+                const registerFromFree = document.getElementById('register-from-free');
+                if (registerFromFree) {
+                    registerFromFree.addEventListener('click', function() {
+                        document.getElementById('free-lectures-section').style.display = 'none';
+                        const studentLoginSection = document.getElementById('student-login-section');
+                        if (studentLoginSection) studentLoginSection.style.display = 'flex';
+                    });
+                }
+                
+                // Logout events
+                const teacherLogout = document.getElementById('teacher-logout');
+                if (teacherLogout) {
+                    teacherLogout.addEventListener('click', function() {
+                        document.getElementById('teacher-dashboard').style.display = 'none';
+                        document.getElementById('main-screen').style.display = 'flex';
+                    });
+                }
+                
+                const studentLogout = document.getElementById('student-logout');
+                if (studentLogout) {
+                    studentLogout.addEventListener('click', function() {
+                        currentStudent = null;
+                        document.getElementById('student-dashboard').style.display = 'none';
+                        document.getElementById('main-screen').style.display = 'flex';
+                    });
+                }
+                
+                // Multi-select subjects
+                const subjectsDropdown = document.getElementById('subjects-dropdown');
+                const subjectsOptions = document.getElementById('subjects-options');
+                
+                if (subjectsDropdown && subjectsOptions) {
+                    subjectsDropdown.addEventListener('click', function(e) {
+                        e.stopPropagation();
+                        subjectsOptions.classList.toggle('show');
+                    });
+                    
+                    document.addEventListener('click', function() {
+                        subjectsOptions.classList.remove('show');
+                    });
+                    
+                    subjectsOptions.addEventListener('click', function(e) {
+                        e.stopPropagation();
+                    });
+                    
+                    const options = subjectsOptions.querySelectorAll('.multi-select-option');
+                    options.forEach(option => {
+                        option.addEventListener('click', function() {
+                            const value = this.getAttribute('data-value');
+                            
+                            if (value === 'جميع المواد') {
+                                if (selectedSubjects.includes('جميع المواد')) {
+                                    selectedSubjects = [];
+                                } else {
+                                    selectedSubjects = ['جميع المواد'];
+                                }
+                            } else {
+                                const allSubjectsIndex = selectedSubjects.indexOf('جميع المواد');
+                                if (allSubjectsIndex !== -1) {
+                                    selectedSubjects.splice(allSubjectsIndex, 1);
+                                }
 
-            // طباعة قائمة الطلاب
-            printStudentsBtn.addEventListener('click', function() {
-                window.print();
-            });
+                                const index = selectedSubjects.indexOf(value);
+                                if (index === -1) {
+                                    selectedSubjects.push(value);
+                                } else {
+                                    selectedSubjects.splice(index, 1);
+                                }
+                            }
+                            
+                            updateSelectedSubjectsDisplay();
+                        });
+                    });
+                }
+                
+                // Content type toggle
+                const contentTypeSelect = document.getElementById('content-type');
+                if (contentTypeSelect) {
+                    contentTypeSelect.addEventListener('change', toggleContentType);
+                }
+                
+                // Close teacher videos modal
+                const closeTeacherVideosModal = document.getElementById('close-teacher-videos-modal');
+                if (closeTeacherVideosModal) {
+                    closeTeacherVideosModal.addEventListener('click', () => {
+                        const teacherVideosModal = document.getElementById('teacher-videos-modal');
+                        if (teacherVideosModal) teacherVideosModal.style.display = 'none';
+                    });
+                }
+            }
+            
+            // ==================== بدء التطبيق ====================
+            setupEventListeners();
+            initializeApp();
+            updateSelectedSubjectsDisplay();
+            toggleContentType();
         });
-
-        // جعل الدوال متاحة عالمياً لاستخدامها في الأحداث
-        window.toggleContentType = toggleContentType;
-        window.watchVideo = watchVideo;
-        window.deleteVideo = deleteVideo;
-        window.editVideo = editVideo;
-        window.deleteStudent = deleteStudent;
-        window.showTeacherVideosModal = showTeacherVideosModal;
     </script>
 </body>
 </html>
